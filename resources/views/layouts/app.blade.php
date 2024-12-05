@@ -14,7 +14,7 @@
 
     <!-- Scripts -->
     {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
-    <link rel="stylesheet" href="{{ asset('build/assets/app-pGkUgQwf.css') }}">
+    <link rel="stylesheet" href="{{ asset('dist/app-pGkUgQwf.css') }}">
 
     <!-- Styles -->
     @livewireStyles
@@ -44,7 +44,7 @@
     @stack('modals')
 
     @livewireScripts
-    <script src="{{ asset('build/assets/app-z-Rg4TxU.js') }}"></script>
+    <script src="{{ asset('dist/app-z-Rg4TxU.js') }}"></script>
 </body>
 
 </html>
