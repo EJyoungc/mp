@@ -18,7 +18,7 @@
           <img src="{{empty(Auth::user()->profile_photo_path) == false ?  asset('assets/uploads/'.Auth::user()->profile_photo_path) : asset('face-0.jpg') }}" width="60" height="60" class="rounded-circle" alt="User Image">
         </div>
         <div class="info">
-          <a href="{{ route('user.profile') }}" class="d-block text-capitalize "> {{ $name }} </a>
+          <a href="{{ route('user.profile') }}" class="d-block text-capitalize "> {{ $name->name }} </a>
         </div>
       </div>
 
