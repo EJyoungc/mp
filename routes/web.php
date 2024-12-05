@@ -34,6 +34,7 @@ Route::middleware([
 
 Route::get('/dashboard', DashboardLivewire::class )->name('dashboard');
 Route::get('/user', UsersLivewire::class )->name('users');
+// Route::get('/mothers', MotherLivewire::class )->name('mothers');
 Route::get('profile',ProfileLivewire::class )->name('user.profile');
 Route::get('mothers/{mother_id}',MotherLivewire::class )->name('mothers.show');
 Route::get('mothers/{mother_id}/session/{session_id}/history',MotherSessionHistoryLivewire::class )->name('mothers.history.show');
