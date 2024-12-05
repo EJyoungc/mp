@@ -16,7 +16,8 @@ use App\Livewire\Users\UsersLivewire;
 use Illuminate\Mail\Markdown;
 
 Route::get('/', function () {
-    return view('welcome');
+    // return view('welcome');
+    return redirect(route('login'));
 });
 
 Route::get('/test',TestLivewire::class);
