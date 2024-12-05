@@ -12,17 +12,18 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('plugins/sweetalert2/sweetalert2.css') }}">
-    {{-- <link rel="stylesheet" href="{{ asset('plugins/fontawesome-free/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('dist/css/adminlte.min.css') }}">
-    <!-- Scripts --> --}}
-    @vite(['resources/css/app.css', 
+    <link rel="stylesheet" href="{{ asset('plugins/fontawesome-free/css/all.min.css') }}">
+    <!-- Scripts -->
+    {{-- @vite(['resources/css/app.css', 
     'resources/js/app.js', 
     'public/dist/css/adminlte.min.css',
     'public/plugins/jquery/jquery.min.js' ,
     'public/plugins/bootstrap/js/bootstrap.bundle.min.js', 
     'public/dist/js/adminlte.min.js',
     'public/plugins/fontawesome-free/css/all.min.css'
-    ])
+    ]) --}}
 
     <!-- Styles -->
     @livewireStyles
@@ -62,6 +63,7 @@
             reserved.
         </footer>
 
+        
         @livewireScripts
         <script src="{{ asset('plugins/sweetalert2/sweetalert2.min.js') }}"></script>
         <x-livewire-alert::scripts />
@@ -84,6 +86,10 @@
             });
             // });
         </script>
+
+        <script src="{{ asset('plugins/jquery/jquery.min.js') }}" ></script>
+        <script src="{{ asset('dist/js/adminlte.min.js') }}" ></script>
+        
 </body>
 
 </html>
