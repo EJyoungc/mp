@@ -3,11 +3,13 @@
 namespace App\Livewire\Mothers;
 
 use App\Models\MessageHistory;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 
 class MotherSessionHistoryLivewire extends Component
 {
 
+    use LivewireAlert;
     public $modal = false;
     public $mother_id;
     public $history_id;
@@ -16,6 +18,16 @@ class MotherSessionHistoryLivewire extends Component
         
         $this->mother_id = $mother_id;
         $this->history_id = $session_id;
+    }
+
+
+
+    public function resend($id){
+        $mh = MessageHistory::find($id);
+        $mh->message_status = "unsent";
+        $mh->save();
+        $this->alert('success','Added to sending Queue');
+
     }
 
 
@@ -33,7 +45,8 @@ class MotherSessionHistoryLivewire extends Component
     }
     public function render()
     {
-        $message_history = MessageHistory::where('mother_id', $this->mother_id)->where('history_id', $this->history_id)->get();
+        // dd( $this->mother_id);
+        $message_history = MessageHistory::where('mother_id', $this->mother_id)->get();
         $failed = MessageHistory::where('mother_id', $this->mother_id)->where('history_id', $this->history_id)->where('message_status', 'failed')->get();
         $unsent = MessageHistory::where('mother_id', $this->mother_id)->where('history_id', $this->history_id)->where('message_status', 'unsent')->get();
         return view('livewire.mothers.mother-session-history-livewire')

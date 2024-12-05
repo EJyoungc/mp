@@ -75,7 +75,7 @@
                                             <td>{{ $item->week->week }}</td>
                                             
                                             <td>
-                                                <span class="badge bg-@if($item->message_status == 'sent')success @elseif($item->message_status == 'failed')danger @else dark @endif @if($item->message_status == 'SENT') @elseif($item->message_status == 'FAILED') @endif  "  >
+                                                <span class="badge @if($item->message_status == 'sent') bg-success @elseif($item->message_status == 'failed') bg-danger @else bg-dark @endif @if($item->message_status == 'SENT') @elseif($item->message_status == 'FAILED') bg-danger @endif  "  >
                                                     {{ $item->message_status }}
                                                 </span>
                                             </td>
@@ -86,8 +86,8 @@
                                                                 option
                                                 </a>
                                                     <div class="dropdown-menu" aria-labelledby="triggerId">
-                                                        <a class="dropdown-item" href="#">Resend</a>
-                                                        <a class="dropdown-item disabled" href="#">Disabled action</a>
+                                                        <a class="dropdown-item "wire:click.prevent="resend({{ $item->id }})"  href="#">Resend</a>
+                                                        {{-- <a class="dropdown-item disabled" href="#">Disabled action</a> --}}
                                                     </div>
                                                 </div>
 

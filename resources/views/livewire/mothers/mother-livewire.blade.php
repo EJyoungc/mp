@@ -35,7 +35,7 @@
                             <h4>Messages</h4>
                             <h5 class="float-right" >{{ $messages->count() }}</h5>
 
-                            <h5 class="float-right d-none" wire:poll.5s='test' >{{$count}}</h5>
+                                
                         </div>
                     </div>
                 </div>
