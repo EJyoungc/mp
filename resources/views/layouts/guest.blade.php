@@ -12,8 +12,8 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-
+        {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
+<link rel="stylesheet" href="{{ asset('build/assets/app-pGkUgQwf.css') }}">
         <!-- Styles -->
         @livewireStyles
     </head>
@@ -23,5 +23,6 @@
         </div>
 
         @livewireScripts
+        <script src="{{ asset('build/assets/app-z-Rg4TxU.js') }}"></script>
     </body>
 </html>
