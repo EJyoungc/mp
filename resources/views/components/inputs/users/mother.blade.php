@@ -100,11 +100,6 @@
     <x-input-error for="next_of_kin_mobile" />
 </div>
 
-<div class="form-group">
-    <label for="">Last Normal Menstural Period Date</label>
-    <input type="date" class="form-control" wire:model="last_normal_menstrual_period_date">
-    <x-input-error for="last_normal_menstrual_period_date" />
-</div>
 
 <!-- Height Input -->
 <div class="mb-3 form-group">
@@ -156,7 +151,7 @@
     <label for="deliveries" class="form-label">Deliveries</label>
     <select id="deliveries" class="form-control" wire:model="deliveries">
         <option value="">Select</option>
-        
+
         @for ($i = 0; $i <= 10; $i++)
             <option value="{{ $i }}">{{ $i }}</option>
         @endfor

@@ -15,7 +15,7 @@ class UserEditLivewire extends Component
 
     use LivewireAlert;
     public $modal = false;
-    
+
     public $user;
     public $role;
     public $role_id;
@@ -26,7 +26,7 @@ class UserEditLivewire extends Component
     public $deliveries;
     public $abortions;
     public $stillBirths;
-    
+
     public $cSection;
     public $vacum;
     public $multiple;
@@ -37,12 +37,12 @@ class UserEditLivewire extends Component
 
     public function create(){
         $this->modal = true;
-        
+
     }
 
 
     public function mount($role,$user_id){
-        // 
+        //
         $role = Role::where('name', $role)->first();
         $this->role_id = $role->id;
         $this->user = User::findOrFail($user_id);
@@ -66,16 +66,16 @@ class UserEditLivewire extends Component
         $this->deliveries = $this->user->deliveries;
         $this->abortions = $this->user->abortions;
         $this->stillBirths = $this->user->still_births;
-       
+
         $this->multiple = $this->user->multiple;
         $this->cSection = $this->user->c_section;
         $this->vacum = $this->user->vacum;
         $this->tuberculosis = $this->user->tuberculosis;
         $this->asthma = $this->user->asthma;
         $this->menstrualCycle = $this->user->menstrual_cycle;
-        
-        
-        
+
+
+
     }
     public function UpdatedDateOfBirth()
     {
@@ -93,7 +93,7 @@ class UserEditLivewire extends Component
                 ]);
                 break;
             case 'mother':
-                
+
              $this->validate([
                     'name' => 'required | string | max:255',
                     // 'email' => 'required | string | email | max:255 | unique:users',
@@ -121,9 +121,9 @@ class UserEditLivewire extends Component
                     'tuberculosis' => 'required',
                     'asthma' => 'required',
                     'menstrualCycle' => 'required',
-                    
+
                 ]);
-                
+
               $this->user->update([
                     'role_id' => $this->role_id,
                     'name' => $this->name,
@@ -156,19 +156,19 @@ class UserEditLivewire extends Component
                 ]);
                 // dd($this->stillBirths,$this->cSection,$this->vacum,$this->user);
 
-                
+
                 $this->alert('success', 'Mother Updated Successfully');
                 sleep(5);
                 return redirect(route('users'));
                 break;
         }
-       
+
     }
 
     public function cancel(){
         $this->reset([
             'modal',
-            
+
         ]);
     }
     public function render()

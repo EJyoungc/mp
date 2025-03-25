@@ -13,6 +13,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         //
+        $middleware->alias([
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'doctor'=> \App\Http\Middleware\DoctorAuth::class,
+            'mother'=> \App\Http\Middleware\MotherAuth::class,
+            'pract'=> \App\Http\Middleware\PractitionerAuth::class,
+            
+            'admin'=> \App\Http\Middleware\AdminAuth::class,
+            'System'=> \App\Http\Middleware\SystemAdminAuth::class
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

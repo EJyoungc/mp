@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -94,6 +96,30 @@ class User extends Authenticatable
 
 
     ];
+
+    /**
+     * Set the user's date of birth and automatically calculate the age.
+     *
+     * @param  string  $value  The date of birth (YYYY-MM-DD)
+     * @return void
+     */
+    public function setDateOfBirthAttribute($value)
+    {
+        $this->attributes['date_of_birth'] = $value;
+
+        if ($value) {
+            $this->attributes['age'] = Carbon::parse($value)->age;
+        }
+    }
+
+    public function setAttribute($key, $value)
+    {
+        if (is_string($value)) {
+            $value = strtolower($value);
+        }
+
+        parent::setAttribute($key, $value);
+    }
 
     /**
      * Get the attributes that should be cast.

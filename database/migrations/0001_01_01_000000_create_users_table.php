@@ -30,27 +30,22 @@ return new class extends Migration
             $table->string('next_of_kin_mobile')->nullable();
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
-            
+
 
             // PHYSICAL DEFORMITY Detailes
 
             $table->integer('height')->nullable()->comment('Height in centimeters');
             $table->enum('leg_or_spine', ['yes', 'no'])->default('no')->comment('Leg or spine issues');
             $table->enum('deformity', ['yes', 'no'])->default('no')->comment('Any deformity');
-            
-            //Previous Obstetric History 
+
+            //Previous Obstetric History
             $table->integer('deliveries')->default(0)->comment('Number of deliveries');
             $table->integer('abortions')->default(0)->comment('Number of abortions');
             $table->enum('still_births', ['yes', 'no'])->nullable()->comment('Still births status');
             $table->enum('c_section', ['yes', 'no'])->nullable()->comment('Abnormal delivery: C-sections');
             $table->enum('vacum', ['yes', 'no'])->nullable()->comment('Abnormal delivery: Vacuum');
 
-            //  
-            // $table->integer('deliveries')->nullable();
-            // $table->integer('abortions')->nullable();
-            // $table->enum('still_births', ['yes', 'no'])->nullable();
-            // $table->enum('c_section', ['yes', 'no'])->nullable();
-            // $table->enum('vacuum', ['yes', 'no'])->nullable();
+           
             $table->enum('multiple', ['yes', 'no'])->nullable();
             $table->enum('aph', ['yes', 'no'])->nullable();
             $table->enum('pph', ['yes', 'no'])->nullable();
@@ -65,11 +60,11 @@ return new class extends Migration
             $table->enum('menstrual_cycle', ['regular', 'abnormal'])->nullable();
 
             $table->string('traditional_authority')->nullable();
-            // $table->date('last_normal_menstrual_period_date')->nullable();
+           
 
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
-            
+
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
