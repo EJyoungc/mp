@@ -5,9 +5,11 @@ namespace App\Livewire\Dashboard;
 use App\Exports\MothersSampleExport;
 use App\Imports\MothersImport;
 use App\Models\MessageHistory;
+use App\Models\Organization;
 use App\Models\Tip;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -20,9 +22,54 @@ class DashboardLivewire extends Component
     use WithFileUploads;
     use LivewireAlert;
     public $modal = false;
+    public $modal2 = false;
     public $file;
     public $previewData = [];
     public $previewTitleData = [];
+
+    public $search = '';
+    public $liststatus = false;
+    public $user;
+    public $organization;
+    public $organizations =  [];
+
+    public function save(){
+
+        $this->user->organization_id = $this->organization->id;
+        $this->user->save();
+        $this->alert('success', 'Organization successfully selected');
+        $this->cancel();
+    }
+
+    public function remove_organization($id){
+        $user = User::findOrFail($id);
+        $user->organization_id = null;
+        $user->save();
+        $this->alert('success', 'Organization successfully removed');
+    }
+
+    public function select_org($id){
+        $this->organization = Organization::findOrFail($id);
+        $this->search = "";
+        $this->organizations = [];
+        $this->liststatus = false;
+
+    }
+
+    public function remove_org(){
+            $this->organization = null;
+    }
+
+    public function updatedSearch()
+    {
+        if (strlen($this->search) > 1) {
+            $this->liststatus = false;
+            $this->organizations = Organization::where('name', 'like', '%' . $this->search . '%')->limit(10)->get();
+        } else {
+            $this->organizations = [];
+        }
+    }
+
 
     #[Computed]
     function convertDate($value)
@@ -32,6 +79,19 @@ class DashboardLivewire extends Component
         }
         return $value;
     }
+
+
+    public function add_organization($id){
+
+
+        $this->user = User::findOrFail($id);
+        $this->modal2 = true;
+
+
+
+    }
+
+
 
     public function addMothers()
     {
@@ -85,9 +145,27 @@ class DashboardLivewire extends Component
         $this->file = null;
     }
 
+    public function accept($id)
+    {
+        $user = User::findOrFail($id);
+        if (!empty($user->organization_id)) {
+            if ($user->organization_verify == "pending" || $user->organization_verify == "declined") {
+                $user->organization_verify = "accepted";
+                $user->save();
+                $this->alert('success', 'User Accepted');
+            } else {
+                $user->organization_verify = "declined";
+                $user->save();
+                $this->alert('warning', 'User Declined');
+            }
+        } else {
+            $this->alert('warning', 'User Has No Organization');
+        }
+    }
+
     public function cancel()
     {
-        $this->reset(['modal', 'file', 'previewData']);
+        $this->reset(['modal', 'file', 'modal2',  'previewData']);
     }
 
     public function export()
@@ -96,6 +174,9 @@ class DashboardLivewire extends Component
     }
     public function render()
     {
+
+        $requests = User::whereIn('role_id', [2, 3, 5])->orderby('organization_verify', 'desc')->get();
+
 
 
         if (Auth::user()->role->name === 'mother') {
@@ -110,6 +191,7 @@ class DashboardLivewire extends Component
             ->with('mothers', $mothers)
             ->with('users', $users)
             ->with('messages', $messages)
-            ->with('tips', $tips);
+            ->with('tips', $tips)
+            ->with('requests', $requests);
     }
 }

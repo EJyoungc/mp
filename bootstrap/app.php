@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'doctor'=> \App\Http\Middleware\DoctorAuth::class,
             'mother'=> \App\Http\Middleware\MotherAuth::class,
             'pract'=> \App\Http\Middleware\PractitionerAuth::class,
-            
+            'isOrginizationVerified'=> \App\Http\Middleware\IsOrginizationVerified::class,
             'admin'=> \App\Http\Middleware\AdminAuth::class,
             'System'=> \App\Http\Middleware\SystemAdminAuth::class
         ]);

@@ -40,6 +40,14 @@
                                 <livewire:messages.checker-livewire>
                             </a>
                         </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('organizations') }}" class="nav-link ">
+                                <i class="nav-icon fas fa-plus"></i>
+                                <p>Organizations</p>
+                            </a>
+                        </li>
+
                         <li class="nav-item">
                             <a href="{{ route('users') }}" class="nav-link ">
                                 <i class="nav-icon fas fa-users"></i>
@@ -94,6 +102,14 @@
                             <livewire:messages.checker-livewire>
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('organizations') }}" class="nav-link ">
+                            <i class="nav-icon fas fa-plus"></i>
+                            <p>Organizations</p>
+                        </a>
+                    </li>
+                    
                     <li class="nav-item">
                         <a href="{{ route('users') }}" class="nav-link ">
                             <i class="nav-icon fas fa-users"></i>

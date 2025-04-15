@@ -6,6 +6,7 @@ use App\Helper\StandardData;
 use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Illuminate\Support\Str;
@@ -26,7 +27,7 @@ class UserCreateLivewire extends Component
     public $deliveries;
     public $abortions;
     public $stillBirths;
-    
+
     public $cSection;
     public $vacum;
     public $multiple;
@@ -190,8 +191,8 @@ class UserCreateLivewire extends Component
                     'tuberculosis' => $this->tuberculosis,
                     'asthma' => $this->asthma,
                     'menstrual_cycle' => $this->menstrualCycle,
-                    
-                    
+                    'organization_id' => Auth::user()->organization_id
+
                 ]);
 
 

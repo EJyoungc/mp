@@ -157,7 +157,10 @@
                                                             wire:click.prevent='resetPassword({{ $item->id }})'
                                                             href="#">Reset
                                                             Password</a>
-
+                                                            @if(Auth::user()->role->name === 'system-admin')
+                                                            <a class="dropdown-item"
+                                                                href="#" wire:click.prevent="delete({{$item->id }})" wire:confirm.prompt='Are you sure you want to delete this mother ? \n\nType DELETE to Confirm|DELETE'>Delete </a>
+                                                            @endif
                                                     </div>
 
                                                 </td>

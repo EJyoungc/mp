@@ -4,6 +4,8 @@ namespace App\Livewire\Users;
 
 use App\Helper\StandardData;
 use App\Mail\Reset;
+use App\Models\History;
+use App\Models\MessageHistory;
 use App\Models\Role;
 use App\Models\User;
 use Exception;
@@ -33,6 +35,16 @@ class UsersLivewire extends Component
             $user->save();
             $this->alert('success', 'User status updated successfully');
         }
+    }
+
+
+    public function delete($id){
+        $user = User::findOrFail($id);
+        $h = History::where('mother_id', $id)->delete();
+        $mh = MessageHistory::where('mother_id', $id)->delete();
+
+        $user->delete();
+        $this->alert('success', 'User deleted successfully');
     }
 
 
@@ -82,7 +94,7 @@ class UsersLivewire extends Component
 
         // Example condition: Check if the logged-in user is an admin
         if (Auth::user()->role->name === 'admin') {
-            $users->where('role_id', '!=', 1); // Exclude system-admin users
+            $users->whereNot('role_id', '!=', 1); // Exclude system-admin users
         }
 
         // Example condition: Check if the logged-in user is a doctor
@@ -94,14 +106,15 @@ class UsersLivewire extends Component
             $users->whereNot('role_id', 1)->whereNot('role_id', 2)->whereNot('role_id', 3)->whereNot('role_id', 5)->whereNot('role_id',5); // Only include doctors
         }
 
-        
+
 
 
         $users = $users->get();
+
         $roles = Role::query();
 
         // Example condition: Check if the logged-in user is an admin
-        if (Auth::user()->role->name === 'admin') {
+        if (Auth::user()->role->name == 'admin') {
             $roles->whereNot('name', 'system-admin'); // Exclude system-admin role
         }
 
