@@ -38,7 +38,7 @@ Route::middleware([
         Route::get('/user', UsersLivewire::class)->name('users');
         Route::get('/organizations', OrganizationsLivewire::class)->name('organizations');
         Route::get('/organizations/users/{id}', OrganizationUsersLivewire::class)->name('organizations.users');
-        
+
         // Route::get('/mothers', MotherLivewire::class )->name('mothers');
         Route::get('profile', ProfileLivewire::class)->name('user.profile');
         Route::get('mothers/{mother_id}', MotherLivewire::class)->name('mothers.show');
