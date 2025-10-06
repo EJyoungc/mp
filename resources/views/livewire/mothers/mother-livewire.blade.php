@@ -35,7 +35,7 @@
                             <h4>Messages</h4>
                             <h5 class="float-right" >{{ $messages->count() }}</h5>
 
-                                
+
                         </div>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
                                             <th>#</th>
                                             <th>Infant Number</th>
                                             <th>Last Menstrual Cycle</th>
-                                            
+
                                             <th>Week</th>
                                             <th>Day</th>
                                             <th></th>
@@ -93,13 +93,13 @@
                                       @forelse ($history as $index => $item)
                                       <tr>
                                         <td >{{ $index + 1 }}</td>
-                                        
+
                                         <td>{{ $item->infant_number }}</td>
                                         <td>{{ $item->last_menstrual_cycle }}</td>
-                                       
+
                                         {{-- <td>@dump( $item->calculate_week() )</td> --}}
-                                        <td>{{$item->calculate_week()['weeks']}}</td>
-                                        <td>{{$item->calculate_week()['day_of_week']}}</td>
+                                        <td>{{$item->calculate_week()['weeks'] > 40 ? "Complete" : $item->calculate_week()['weeks'] }}</td>
+                                        <td><span class="badge bg-success" >{{$item->calculate_weekv2()['days']}}</span></td>
                                         <td>
                                             <div class="dropdown open">
                                                 <a class="btn btn-secondary dropdown-toggle" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true"
@@ -109,7 +109,7 @@
                                                 <div class="dropdown-menu" aria-labelledby="triggerId">
                                                     <a class="dropdown-item"  href="{{ route('mothers.history.show', [$mother_id->id,$item->id]) }}">View message History</a>
                                                     <a class="dropdown-item" wire:click.prevent='create({{ $item->id }})' href="#">Edit</a>
-                                                   
+
                                                 </div>
                                             </div>
                                         </td>
@@ -119,7 +119,7 @@
                                         <td colspan="4" class="text-center text-muted h3">No Data Found</td></td>
                                     </tr>
                                       @endforelse
-                                       
+
                                     </tbody>
                                 </table>
                             </div>

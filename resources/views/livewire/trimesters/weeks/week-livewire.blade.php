@@ -56,7 +56,7 @@
                                     <select wire:model="day" class="form-control">
                                         <option value="">Select Day</option>
                                         @foreach ($days as $item)
-                                            <option value="{{ $item->id }}">{{ $item->day_number }}</option>
+                                            <option value="{{ $item }}">{{ $item }}</option>
                                         @endforeach
                                     </select>
                                     <x-input-error for="day" />
@@ -101,7 +101,7 @@
                                                 <td scope="row">{{ $item->id }}</td>
 
                                                 <td>{{ $item->tip }}</td>
-                                                <td>{{ $item->day->day_number }}</td>
+                                                <td>{{ $item->day_id }}</td>
                                                 <td>
                                                     <div class="text-capitalize"  >{{ $item->day_range->name }}</div>
                                                 <small class=" text-muted d-block" >({{ $item->day_range->start_time }} - {{ $item->day_range->end_time }})</small>

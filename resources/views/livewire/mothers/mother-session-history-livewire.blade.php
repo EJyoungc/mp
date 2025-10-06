@@ -65,15 +65,15 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                       
+
                                         @forelse ($message_history as $item)
                                         <tr>
                                             <td scope="row">{{ $item->id }}</td>
                                             <td>{{Str::limit($item->tip->tip, 10)}}</td>
                                             <td>{{ $item->mother->name }}</td>
-                                            <td>{{ $item->day->day_number }}</td>
+                                            <td>{{ $item->day_id }}</td>
                                             <td>{{ $item->week->week }}</td>
-                                            
+
                                             <td>
                                                 <span class="badge @if($item->message_status == 'sent') bg-success @elseif($item->message_status == 'failed') bg-danger @else bg-dark @endif @if($item->message_status == 'SENT') @elseif($item->message_status == 'FAILED') bg-danger @endif  "  >
                                                     {{ $item->message_status }}
@@ -96,7 +96,7 @@
                                         @empty
                                         <tr>
                                             <td class="text-center text-muted h4" colspan="7"  >EMPTY</td>
-                                            
+
                                         </tr>
                                         @endforelse
                                     </tbody>

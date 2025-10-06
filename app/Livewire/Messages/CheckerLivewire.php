@@ -8,6 +8,7 @@ use App\Models\Tip;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use AfricasTalking\SDK\AfricasTalking;
+use Carbon\Carbon;
 
 class CheckerLivewire extends Component
 {
@@ -22,29 +23,36 @@ class CheckerLivewire extends Component
 
     public function create(){
         $this->modal = true;
-        
+
     }
 
     public function test()
     {
         $this->count++;
         $histories = History::all();
-    
+
         foreach ($histories as $history) {
-            $weekdata = $history->calculate_week();
+            // $weekdata = $history->calculate_week();
+            $weekdata = $history->calculate_weekv2();
+            // dd($weekdata, $history );
             $tips = Tip::where('week_id', (int)$weekdata['weeks'])
-                       ->where('day_id', (int)$weekdata['day_of_week'])
+                       ->where('day_id', (int)$weekdata['days'])
                        ->get();
-    
+
+            // dd($tips);
+            $now = Carbon::now("GMT+2");
+            $time  = Carbon::now("GMT+2");
             foreach ($tips as $t) {
+
                 $messagehistory = MessageHistory::where('tip_id', $t->id)
                                                 ->where('week_id', $weekdata['weeks'])
                                                 ->where('day_range_id', $t->day_range_id)
                                                 ->where('mother_id', $history->mother_id)
                                                 ->where('history_id', $history->id)
                                                 ->first();
-    
+
                 if (!$messagehistory) {
+
                     $messagehistory = MessageHistory::create([
                         'tip_id' => $t->id,
                         'week_id' => $weekdata['weeks'],
@@ -55,8 +63,11 @@ class CheckerLivewire extends Component
                         'message_status' => 'unsent',
                     ]);
                 }
-    
-                if ($messagehistory->message_status === 'unsent') {
+
+
+                // dd($time,$t->day_range, $t->day_range->start_time, $t->day_range->end_time, $now->between($t->day_range->start_time, $t->day_range->end_time));
+
+                if ($messagehistory->message_status === 'unsent' && $now->between($t->day_range->start_time, $t->day_range->end_time)) {
                     $this->sendMessage($messagehistory, $history->mother->name, $t->tip, $history->mother->phone);
                 }
             }
@@ -64,13 +75,15 @@ class CheckerLivewire extends Component
     }
     private function sendMessage($messagehistory, $motherName, $tip, $mobile_number)
     {
-        
+
         $AT = new AfricasTalking($this->username, $this->apiKey);
         $sms = $AT->sms();
 
         // dd();
 
-       
+
+        
+
         $result   = $sms->send([
             'to'      => $this->formatPhoneNumber($mobile_number),
             'message' => $tip,
@@ -78,8 +91,8 @@ class CheckerLivewire extends Component
         ]);
         // dd($result['status']);
         if ($result['status'] == "success" ) {
-            
-           
+
+
             $messagehistory->message_status = 'sent';
             $messagehistory->save();
             $this->alert('info', 'Dear: ' . $motherName . ' ' . $tip);
@@ -99,12 +112,12 @@ class CheckerLivewire extends Component
     }
     return $phoneNumber;
 }
-    
+
 
     public function cancel(){
         $this->reset([
             'modal',
-            
+
         ]);
     }
     public function render()
