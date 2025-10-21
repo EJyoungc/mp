@@ -23,6 +23,7 @@ class UserSeeder extends Seeder
             'password' => bcrypt('root')
         ]);
 
+        
 
 
 
