@@ -17,7 +17,7 @@ class CheckMessages extends Command
     private $username   = "DumiKaliati";
     private $apiKey     = "atsk_1b93e9047e28c4f2d33a74bc73e65782aa5bd04e8390cae5cb491861b37c05ddbbb59876";
 
-  protected $signature = 'app:check-messages';
+    protected $signature = 'app:check-messages';
     protected $description = 'Check user histories and send scheduled tips via SMS';
 
     public function handle()
@@ -27,15 +27,20 @@ class CheckMessages extends Command
 
     public function test()
     {
-         $this->info('✅ running >> ' . now());
+        $this->info('✅ running >> ' . now());
+
         $histories = History::all();
+        $this->info('Total histories: ' . $histories->count());
 
         foreach ($histories as $history) {
             $weekdata = $history->calculate_weekv2();
+            $this->info("History ID: {$history->id}, Mother ID: {$history->mother_id}, Week: {$weekdata['weeks']}, Day: {$weekdata['days']}");
 
             $tips = Tip::where('week_id', (int)$weekdata['weeks'])
-                       ->where('day_id', (int)$weekdata['days'])
-                       ->get();
+                ->where('day_id', (int)$weekdata['days'])
+                ->get();
+
+            $this->info("Found " . $tips->count() . " tips for week {$weekdata['weeks']} and day {$weekdata['days']}");
 
             $now = Carbon::now("GMT+2");
 
@@ -57,12 +62,17 @@ class CheckMessages extends Command
                         'history_id' => $history->id,
                         'message_status' => 'unsent',
                     ]);
+
+                    $this->info("Created new MessageHistory ID: {$messagehistory->id}");
+                } else {
+                    $this->info("Existing MessageHistory ID: {$messagehistory->id}, Status: {$messagehistory->message_status}");
                 }
 
-                if (
-                    $messagehistory->message_status === 'unsent'
-                    && $now->between($t->day_range->start_time, $t->day_range->end_time)
-                ) {
+                $isTime = $now->between($t->day_range->start_time, $t->day_range->end_time);
+                $this->info("Now: {$now}, Tip Start: {$t->day_range->start_time}, Tip End: {$t->day_range->end_time}, Within Range: " . ($isTime ? 'Yes' : 'No'));
+
+                if ($messagehistory->message_status === 'unsent' && $isTime) {
+                    $this->info("Sending message to {$history->mother->name} ({$history->mother->phone}): {$t->tip}");
                     $this->sendMessage(
                         $messagehistory,
                         $history->mother->name,
@@ -73,9 +83,7 @@ class CheckMessages extends Command
             }
         }
 
-
-
-         $this->info('✅ CheckMessages command finished at ' . now());
+        $this->info('✅ CheckMessages command finished at ' . now());
     }
 
     private function sendMessage($messagehistory, $motherName, $tip, $mobile_number)
@@ -89,9 +97,8 @@ class CheckMessages extends Command
             'from'    => 'Maasms',
         ]);
 
-        $this->info($result);
+        $this->info('Raw AfricasTalking response: ' . json_encode($result));
 
-        // Africa'sTalking returns nested response. Example: $result['data']['SMSMessageData']['Recipients'][0]['status']
         $status = $result['data']['SMSMessageData']['Recipients'][0]['status'] ?? null;
 
         if ($status === "Success") {
