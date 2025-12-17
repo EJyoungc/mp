@@ -27,6 +27,7 @@ class CheckMessages extends Command
 
     public function test()
     {
+         $this->info('✅ running >> ' . now());
         $histories = History::all();
 
         foreach ($histories as $history) {
@@ -71,6 +72,8 @@ class CheckMessages extends Command
                 }
             }
         }
+
+         $this->info('✅ CheckMessages command finished at ' . now());
     }
 
     private function sendMessage($messagehistory, $motherName, $tip, $mobile_number)
