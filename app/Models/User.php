@@ -54,7 +54,7 @@ class User extends Authenticatable
         'multiple',
         'tuberculosis',
         'asthma',
-        'menstrual_cycle' 
+        'menstrual_cycle'
 
 
     ];
@@ -112,14 +112,14 @@ class User extends Authenticatable
         }
     }
 
-    public function setAttribute($key, $value)
-    {
-        if (is_string($value)) {
-            $value = strtolower($value);
-        }
+    // public function setAttribute($key, $value)
+    // {
+    //     if (is_string($value)) {
+    //         $value = strtolower($value);
+    //     }
 
-        parent::setAttribute($key, $value);
-    }
+    //     parent::setAttribute($key, $value);
+    // }
 
     /**
      * Get the attributes that should be cast.
