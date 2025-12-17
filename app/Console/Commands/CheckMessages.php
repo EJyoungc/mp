@@ -73,6 +73,8 @@ class CheckMessages extends Command
             }
         }
 
+
+
          $this->info('✅ CheckMessages command finished at ' . now());
     }
 
@@ -86,6 +88,8 @@ class CheckMessages extends Command
             'message' => $tip,
             'from'    => 'Maasms',
         ]);
+
+        $this->info($result);
 
         // Africa'sTalking returns nested response. Example: $result['data']['SMSMessageData']['Recipients'][0]['status']
         $status = $result['data']['SMSMessageData']['Recipients'][0]['status'] ?? null;
