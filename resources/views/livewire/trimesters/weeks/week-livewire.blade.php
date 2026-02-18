@@ -47,7 +47,7 @@
 
                                 <div class="form-group">
                                     <label for="name">Tips</label>
-                                    <input type="text" class="form-control" wire:model="tip">
+                                    <textarea type="text" class="form-control" wire:model="tip"></textarea>
                                     <x-input-error for="tip" />
 
                                 </div>
