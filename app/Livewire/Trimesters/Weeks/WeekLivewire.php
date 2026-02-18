@@ -43,7 +43,7 @@ class WeekLivewire extends Component
     {
 
         $this->validate([
-            'tip' => 'required|string',
+            'tip' => 'required|string|min:5|max:160',
             'day' => 'required',
             'time' => 'required'
         ]);
