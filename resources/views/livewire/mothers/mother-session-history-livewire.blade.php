@@ -88,6 +88,8 @@
                                                     <div class="dropdown-menu" aria-labelledby="triggerId">
                                                         <a class="dropdown-item "wire:click.prevent="resend({{ $item->id }})"  href="#">Resend</a>
                                                         {{-- <a class="dropdown-item disabled" href="#">Disabled action</a> --}}
+                                                        <a class="dropdown-item "wire:click.prevent="test"  href="#">Test</a>
+
                                                     </div>
                                                 </div>
 
