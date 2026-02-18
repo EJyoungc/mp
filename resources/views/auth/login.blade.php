@@ -1,48 +1,60 @@
 <x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+    <div class="text-center mb-4">
+        <h4 class="font-weight-bold">Welcome Back</h4>
+        <p class="text-muted small">Log in to your MaaSMS account</p>
+    </div>
 
-        <x-validation-errors class="mb-4" />
+    @if ($errors->any())
+        <div class="alert alert-danger small py-2">
+            <ul class="mb-0 px-3">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-        @session('status')
-            <div class="mb-4 font-medium text-sm text-green-600">
-                {{ $value }}
+    @if (session('status'))
+        <div class="alert alert-success small py-2">
+            {{ session('status') }}
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
+
+        <div class="form-group">
+            <label for="email" class="small font-weight-bold">Email Address</label>
+            <input id="email" class="form-control" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="name@example.com">
+        </div>
+
+        <div class="form-group mt-3">
+            <label for="password" class="small font-weight-bold">Password</label>
+            <input id="password" class="form-control" type="password" name="password" required autocomplete="current-password" placeholder="••••••••">
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="remember_me" name="remember">
+                <label class="custom-control-label small text-muted" for="remember_me">Remember me</label>
             </div>
-        @endsession
+            @if (Route::has('password.request'))
+                <a class="small text-pink font-weight-bold" href="{{ route('password.request') }}">
+                    Forgot password?
+                </a>
+            @endif
+        </div>
 
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary btn-block shadow-sm">
+                Log in
+            </button>
+        </div>
 
-            <div>
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+        @if (Route::has('register'))
+            <div class="text-center mt-4">
+                <p class="small text-muted">Don't have an account? <a href="{{ route('register') }}" class="text-pink font-weight-bold">Register here</a></p>
             </div>
-
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
-            </div>
-
-            <div class="block mt-4">
-                <label for="remember_me" class="flex items-center">
-                    <x-checkbox id="remember_me" name="remember" />
-                    <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-                </label>
-            </div>
-
-            <div class="flex items-center justify-end mt-4">
-                @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                        {{ __('Forgot your password?') }}
-                    </a>
-                @endif
-
-                <x-button class="ms-4">
-                    {{ __('Log in') }}
-                </x-button>
-            </div>
-        </form>
-    </x-authentication-card>
+        @endif
+    </form>
 </x-guest-layout>

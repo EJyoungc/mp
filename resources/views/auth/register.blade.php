@@ -1,60 +1,61 @@
 <x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+    <div class="text-center mb-4">
+        <h4 class="font-weight-bold">Create Account</h4>
+        <p class="text-muted small">Join the MaaSMS maternal health network</p>
+    </div>
 
-        <x-validation-errors class="mb-4" />
+    @if ($errors->any())
+        <div class="alert alert-danger small py-2">
+            <ul class="mb-0 px-3">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-        <form method="POST" action="{{ route('register') }}">
-            @csrf
+    <form method="POST" action="{{ route('register') }}">
+        @csrf
 
-            <div>
-                <x-label for="name" value="{{ __('Name') }}" />
-                <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            </div>
+        <div class="form-group">
+            <label for="name" class="small font-weight-bold">Full Name</label>
+            <input id="name" class="form-control" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="John Doe">
+        </div>
 
-            <div class="mt-4">
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            </div>
+        <div class="form-group mt-3">
+            <label for="email" class="small font-weight-bold">Email Address</label>
+            <input id="email" class="form-control" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="name@example.com">
+        </div>
 
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            </div>
+        <div class="form-group mt-3">
+            <label for="password" class="small font-weight-bold">Password</label>
+            <input id="password" class="form-control" type="password" name="password" required autocomplete="new-password" placeholder="••••••••">
+        </div>
 
-            <div class="mt-4">
-                <x-label for="password_confirmation" value="{{ __('Confirm Password') }}" />
-                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
-            </div>
+        <div class="form-group mt-3">
+            <label for="password_confirmation" class="small font-weight-bold">Confirm Password</label>
+            <input id="password_confirmation" class="form-control" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="••••••••">
+        </div>
 
-            @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
-                <div class="mt-4">
-                    <x-label for="terms">
-                        <div class="flex items-center">
-                            <x-checkbox name="terms" id="terms" required />
-
-                            <div class="ms-2">
-                                {!! __('I agree to the :terms_of_service and :privacy_policy', [
-                                        'terms_of_service' => '<a target="_blank" href="'.route('terms.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Terms of Service').'</a>',
-                                        'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Privacy Policy').'</a>',
-                                ]) !!}
-                            </div>
-                        </div>
-                    </x-label>
+        @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
+            <div class="form-group mt-3">
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="terms" name="terms" required>
+                    <label class="custom-control-label small text-muted" for="terms">
+                        I agree to the <a target="_blank" href="{{ route('terms.show') }}" class="text-pink font-weight-bold">Terms of Service</a> and <a target="_blank" href="{{ route('policy.show') }}" class="text-pink font-weight-bold">Privacy Policy</a>
+                    </label>
                 </div>
-            @endif
-
-            <div class="flex items-center justify-end mt-4">
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                    {{ __('Already registered?') }}
-                </a>
-
-                <x-button class="ms-4">
-                    {{ __('Register') }}
-                </x-button>
             </div>
-        </form>
-    </x-authentication-card>
+        @endif
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary btn-block shadow-sm">
+                Register
+            </button>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="small text-muted">Already have an account? <a href="{{ route('login') }}" class="text-pink font-weight-bold">Log in here</a></p>
+        </div>
+    </form>
 </x-guest-layout>

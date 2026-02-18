@@ -20,8 +20,8 @@ use App\Livewire\Organizations\OrganizationUsersLivewire;
 use Illuminate\Mail\Markdown;
 
 Route::get('/', function () {
-    // return view('welcome');
-    return redirect(route('login'));
+    return view('welcome');
+    // return redirect(route('login'));
 });
 
 Route::get('/test', TestLivewire::class);
