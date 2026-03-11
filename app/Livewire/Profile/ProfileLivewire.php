@@ -21,7 +21,7 @@ class ProfileLivewire extends Component
     public $photo;
     public $user;
 
-    public $description;
+    // public $description;
     public $occupation;
 
 
@@ -81,7 +81,7 @@ class ProfileLivewire extends Component
                 $user->password = Hash::make($this->new_password);
                 $user->name = $this->name;
                 $user->email = $this->email;
-                $user->desc = $this->description;
+                // $user->desc = $this->description;
                 $user->occupation = $this->occupation;
                 $user->save();
                 $this->alert('success', 'Successful');
@@ -95,7 +95,7 @@ class ProfileLivewire extends Component
 
             $user->name = $this->name;
             $user->email = $this->email;
-            $user->desc = $this->description;
+            // $user->desc = $this->description;
             $user->occupation = $this->occupation;
             $user->save();
             $this->alert('success', 'Successful');
@@ -107,7 +107,7 @@ class ProfileLivewire extends Component
         $this->user = User::find(Auth::user()->id);
         $this->name = $this->user->name;
         $this->email = $this->user->email;
-        $this->description = $this->user->desc;
+        // $this->description = $this->user->desc;
         $this->occupation = $this->user->occupation;
         return view('livewire.profile.profile-livewire');
     }
