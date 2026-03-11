@@ -45,7 +45,7 @@
 
                                 </div>
 
-                                
+
                                 <div class="form-group">
                                     <label for="">Email</label>
                                     <input type="email" wire:model.defer='email' class="form-control"
@@ -62,7 +62,7 @@
                                     @enderror
 
                                 </div>
-                                <div class="form-group">
+                                {{-- <div class="form-group">
                                     <label for="name">Description</label>
                                     <textarea type="text" wire:model.defer='description' class="form-control">
 
@@ -71,7 +71,7 @@
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
 
-                                </div>
+                                </div> --}}
 
                                 <div class="form-group">
                                     <label for="">Old Password</label>
