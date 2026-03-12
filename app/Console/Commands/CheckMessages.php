@@ -98,14 +98,17 @@ class CheckMessages extends Command
         ]);
 
         $this->info('Raw AfricasTalking response: ' . json_encode($result));
+        $messagehistory->api_response = $result;
 
         $status = $result['data']['SMSMessageData']['Recipients'][0]['status'] ?? null;
 
         if ($status === "Success") {
-            $messagehistory->update(['message_status' => 'sent']);
+            $messagehistory->message_status = 'sent';
+            $messagehistory->save();
             $this->info('Message sent to ' . $motherName . ': ' . $tip);
         } else {
-            $messagehistory->update(['message_status' => 'failed']);
+            $messagehistory->message_status = 'failed';
+            $messagehistory->save();
             $this->error('Message failed for ' . $motherName);
         }
     }

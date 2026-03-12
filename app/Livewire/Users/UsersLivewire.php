@@ -6,6 +6,7 @@ use App\Helper\StandardData;
 use App\Mail\Reset;
 use App\Models\History;
 use App\Models\MessageHistory;
+use App\Models\Organization;
 use App\Models\Role;
 use App\Models\User;
 use Exception;
@@ -14,12 +15,37 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class UsersLivewire extends Component
 {
     use LivewireAlert;
+    use WithPagination;
+
+    protected $paginationTheme = 'bootstrap';
+
     public $modal = false;
     public $user;
+
+    public $search = '';
+    public $role_filter = '';
+    public $organization_filter = '';
+    public $perPage = 10;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingRoleFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingOrganizationFilter()
+    {
+        $this->resetPage();
+    }
 
 
     public function toggleActive($id)
@@ -88,54 +114,67 @@ class UsersLivewire extends Component
 
     public function render()
     {
-
         // Start building the query
-        $users = User::query();
+        $usersQuery = User::with(['role', 'organization']);
 
-        // Example condition: Check if the logged-in user is an admin
+        // Filtering based on logged-in user role
         if (Auth::user()->role->name === 'admin') {
-            $users->whereNot('role_id', '!=', 1); // Exclude system-admin users
+            $usersQuery->whereHas('role', function($q) {
+                $q->where('name', '!=', 'system-admin');
+            });
+        } elseif (Auth::user()->role->name === 'doctor') {
+             $usersQuery->whereHas('role', function($q) {
+                $q->whereNotIn('name', ['system-admin', 'admin']);
+            });
+        } elseif (Auth::user()->role->name === 'practitioner') {
+             $usersQuery->whereHas('role', function($q) {
+                $q->whereNotIn('name', ['system-admin', 'admin', 'doctor', 'practitioner']);
+            });
         }
 
-        // Example condition: Check if the logged-in user is a doctor
-        if (Auth::user()->role->name === 'doctor') {
-            $users->whereNot('role_id', 1)->whereNot('role_id', 2); // Only include doctors
-        }
+        // Search and Filters
+        $usersQuery->when($this->search, function ($query) {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                  ->orWhere('email', 'like', '%' . $this->search . '%')
+                  ->orWhere('phone', 'like', '%' . $this->search . '%');
+            });
+        })
+        ->when($this->role_filter, function ($query) {
+            $query->where('role_id', $this->role_filter);
+        })
+        ->when($this->organization_filter, function ($query) {
+            $query->where('organization_id', $this->organization_filter);
+        });
 
-        if (Auth::user()->role->name === 'practitioner') {
-            $users->whereNot('role_id', 1)->whereNot('role_id', 2)->whereNot('role_id', 3)->whereNot('role_id', 5)->whereNot('role_id',5); // Only include doctors
-        }
+        $users = $usersQuery->latest()->paginate($this->perPage);
 
+        // For stats
+        $doctorsCount = User::whereHas('role', function($q){ $q->where('name', 'doctor'); })->count();
+        $mothersCount = User::whereHas('role', function($q){ $q->where('name', 'mother'); })->count();
+        $practitionersCount = User::whereHas('role', function($q){ $q->where('name', 'practitioner'); })->count();
 
-
-
-        $users = $users->get();
-
-        $roles = Role::query();
-
-        // Example condition: Check if the logged-in user is an admin
+        // Roles for adding users and filtering
+        $rolesQuery = Role::query();
         if (Auth::user()->role->name == 'admin') {
-            $roles->whereNot('name', 'system-admin'); // Exclude system-admin role
+            $rolesQuery->where('name', '!=', 'system-admin');
+        } elseif (Auth::user()->role->name === 'doctor') {
+            $rolesQuery->whereNotIn('name', ['system-admin', 'admin']);
+        } elseif (Auth::user()->role->name === 'practitioner') {
+            $rolesQuery->whereNotIn('name', ['system-admin', 'admin', 'doctor', 'practitioner']);
         }
+        $roles = $rolesQuery->get();
 
-        // Example condition: Check if the logged-in user is a doctor
-        if (Auth::user()->role->name === 'doctor') {
-            $roles->whereNotIn('name', ['system-admin', 'admin']); // Exclude system-admin and admin roles
-        }
+        $organizations = Organization::all();
 
-        if (Auth::user()->role->name === 'practitioner') {
-            $roles->whereNotIn('name', ['system-admin', 'admin','doctor','practitioner']); // Exclude system-admin and admin roles
-        }
-
-        $roles = $roles->get();
-        $doctors = User::where('role_id', 3)->get();
-        $mothers = User::where('role_id', 4)->get();
-        $practioners = User::where('role_id', 5)->get();
-        return view('livewire.users.users-livewire')
-        ->with('users', $users)
-        ->with('roles', $roles)
-        ->with('doctors', $doctors)
-        ->with('mothers', $mothers)
-        ->with('practioners', $practioners);
+        return view('livewire.users.users-livewire', [
+            'users' => $users,
+            'roles' => $roles,
+            'organizations' => $organizations,
+            'doctorsCount' => $doctorsCount,
+            'mothersCount' => $mothersCount,
+            'practitionersCount' => $practitionersCount,
+            'allUsersCount' => User::count(),
+        ]);
     }
 }
