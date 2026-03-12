@@ -17,6 +17,7 @@ use App\Livewire\Alerts\AccessDeniedLive;
 use App\Livewire\Organizations\OrganizationsLivewire;
 use App\Livewire\Organizations\OrganizationUserCheckLivewire;
 use App\Livewire\Organizations\OrganizationUsersLivewire;
+use App\Livewire\Message\MessagesHistoryLivewire;
 use Illuminate\Mail\Markdown;
 
 Route::get('/', function () {
