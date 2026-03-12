@@ -117,6 +117,11 @@ class UsersLivewire extends Component
         // Start building the query
         $usersQuery = User::with(['role', 'organization']);
 
+        // Base restriction: If not system-admin, only show users from the same organization
+        if (Auth::user()->role->name !== 'system-admin') {
+            $usersQuery->where('organization_id', Auth::user()->organization_id);
+        }
+
         // Filtering based on logged-in user role
         if (Auth::user()->role->name === 'admin') {
             $usersQuery->whereHas('role', function($q) {
@@ -149,10 +154,16 @@ class UsersLivewire extends Component
 
         $users = $usersQuery->latest()->paginate($this->perPage);
 
-        // For stats
-        $doctorsCount = User::whereHas('role', function($q){ $q->where('name', 'doctor'); })->count();
-        $mothersCount = User::whereHas('role', function($q){ $q->where('name', 'mother'); })->count();
-        $practitionersCount = User::whereHas('role', function($q){ $q->where('name', 'practitioner'); })->count();
+        // For stats (also restricted by organization if not system-admin)
+        $statsQuery = User::query();
+        if (Auth::user()->role->name !== 'system-admin') {
+            $statsQuery->where('organization_id', Auth::user()->organization_id);
+        }
+
+        $doctorsCount = (clone $statsQuery)->whereHas('role', function($q){ $q->where('name', 'doctor'); })->count();
+        $mothersCount = (clone $statsQuery)->whereHas('role', function($q){ $q->where('name', 'mother'); })->count();
+        $practitionersCount = (clone $statsQuery)->whereHas('role', function($q){ $q->where('name', 'practitioner'); })->count();
+        $allUsersCount = $statsQuery->count();
 
         // Roles for adding users and filtering
         $rolesQuery = Role::query();
@@ -165,7 +176,13 @@ class UsersLivewire extends Component
         }
         $roles = $rolesQuery->get();
 
-        $organizations = Organization::all();
+        // Organizations list for filter
+        if (Auth::user()->role->name === 'system-admin') {
+            $organizations = Organization::all();
+        } else {
+            // Non-system admins can only "filter" by their own organization (effectively no filter choice)
+            $organizations = Organization::where('id', Auth::user()->organization_id)->get();
+        }
 
         return view('livewire.users.users-livewire', [
             'users' => $users,
@@ -174,7 +191,7 @@ class UsersLivewire extends Component
             'doctorsCount' => $doctorsCount,
             'mothersCount' => $mothersCount,
             'practitionersCount' => $practitionersCount,
-            'allUsersCount' => User::count(),
+            'allUsersCount' => $allUsersCount,
         ]);
     }
 }

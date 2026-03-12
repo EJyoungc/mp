@@ -47,7 +47,7 @@ class OrganizationUserCheckLivewire extends Component
             $this->liststatus = true;
             $this->search = "";
             $this->organizations = Organization::all();
-            // $this->reset();
+            $this->reset();
         } else {
             // $this->organizations = [];
             $this->search = "";

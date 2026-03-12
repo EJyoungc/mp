@@ -84,6 +84,7 @@ class OrganizationsLivewire extends Component
             'description',
             'organization',
             'user_modal',
+            'modal'
 
         ]);
     }
