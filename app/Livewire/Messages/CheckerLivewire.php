@@ -90,6 +90,7 @@ class CheckerLivewire extends Component
              "from" => 'Maasms'
         ]);
         // dd($result['status']);
+        $messagehistory->api_response = $result;
         if ($result['status'] == "success" ) {
 
 

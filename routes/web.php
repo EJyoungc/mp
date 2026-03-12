@@ -49,6 +49,7 @@ Route::middleware([
         Route::get('/trimester/{trimester_id}/weeks/{week_id}', WeekLivewire::class)->name('trimester.week.show');
         Route::get('/days', DaysLivewire::class)->name('days');
         Route::get('/test',TestLivewire::class)->name('test');
+        Route::get('/messages-histories', MessagesHistoryLivewire::class)->name('messages.histories');
 
         Route::get('days/ranges', DayRangesLivewire::class)->name('days.range');
     });

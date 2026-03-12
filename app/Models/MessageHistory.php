@@ -17,6 +17,11 @@ class MessageHistory extends Model
         'mother_id',
         'history_id',
         'message_status',
+        'api_response',
+    ];
+
+    protected $casts = [
+        'api_response' => 'array',
     ];
 
 

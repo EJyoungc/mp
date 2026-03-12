@@ -4,5 +4,14 @@
       "rust-pro",
       "tauri-nuxt-rust-architect"
     ]
+  },
+  "mcpServers": {
+    "laravel-boost": {
+      "command": "php",
+      "args": [
+        "artisan",
+        "boost:mcp"
+      ]
+    }
   }
 }
