@@ -1,5 +1,5 @@
 <?php
-
+namespace App\Livewire\Message;
 use App\Models\MessageHistory;
 use Livewire\Component;
 use Livewire\WithPagination;
