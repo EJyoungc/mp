@@ -150,6 +150,7 @@
                                                         </button>
                                                         <div class="dropdown-menu">
                                                             <a class="dropdown-item" href="{{ route('users.edit', [$item->role->name, $item->id]) }}">Edit</a>
+                                                            <a class="dropdown-item" wire:click.prevent="showRoleModal({{ $item->id }})" href="#">Change Role</a>
                                                             <a class="dropdown-item" wire:click.prevent="toggleActive({{ $item->id }})" href="#">
                                                                 {{ $item->is_active == 1 ? 'Deactivate' : 'Activate' }}
                                                             </a>
@@ -183,4 +184,27 @@
             </div>
         </div>
     </div>
+
+    <x-modal status="{{ $roleModal }}" title="Change User Role">
+        @if($selectedUser)
+            <div class="p-3">
+                <p>Updating role for: <strong>{{ $selectedUser->name }}</strong></p>
+                <form wire:submit.prevent="updateRole">
+                    <div class="form-group">
+                        <label for="newRoleId">Select New Role</label>
+                        <select wire:model="newRoleId" class="form-control" id="newRoleId">
+                            @foreach($roles as $role)
+                                <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error for="newRoleId" />
+                    </div>
+                    <div class="mt-4 d-flex justify-content-between">
+                        <button type="button" wire:click="cancel" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Role <x-spinner for="updateRole" /></button>
+                    </div>
+                </form>
+            </div>
+        @endif
+    </x-modal>
 </div>

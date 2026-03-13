@@ -25,7 +25,10 @@ class UsersLivewire extends Component
     protected $paginationTheme = 'bootstrap';
 
     public $modal = false;
+    public $roleModal = false;
     public $user;
+    public $selectedUser;
+    public $newRoleId;
 
     public $search = '';
     public $role_filter = '';
@@ -92,11 +95,26 @@ class UsersLivewire extends Component
 
     }
 
+    public function showRoleModal($userId)
+    {
+        $this->selectedUser = User::findOrFail($userId);
+        $this->newRoleId = $this->selectedUser->role_id;
+        $this->roleModal = true;
+    }
 
+    public function updateRole()
+    {
+        $this->validate([
+            'newRoleId' => 'required|exists:roles,id'
+        ]);
 
+        $this->selectedUser->update([
+            'role_id' => $this->newRoleId
+        ]);
 
-
-
+        $this->roleModal = false;
+        $this->alert('success', 'User role updated successfully');
+    }
 
     public function create()
     {
@@ -107,7 +125,10 @@ class UsersLivewire extends Component
     {
         $this->reset([
             'modal',
-            'user'
+            'roleModal',
+            'user',
+            'selectedUser',
+            'newRoleId'
         ]);
     }
 
