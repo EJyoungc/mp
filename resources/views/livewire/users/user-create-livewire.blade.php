@@ -49,7 +49,7 @@
                             @endif
 
                             @if ($role == 'mother')
-                                <x-inputs.users.mother :districts="$districts" :areas="$areas" :district_id="$district_id"/>
+                                <x-inputs.users.mother :districts="$districts" :areas="$areas" :district-id="$district_id"/>
                             @endif
 
                             <div class="mt-4 border-top pt-4 text-right">

@@ -1,5 +1,5 @@
 
-@props(['districts', 'areas', 'district_id'])
+@props(['districts', 'areas', 'districtId'])
 
 @if ($errors->any())
     <div class="alert alert-danger">
@@ -101,14 +101,14 @@
 <div class="form-group">
     <label for="area_id">Area</label>
     <div class="input-group">
-        <select wire:model="area_id" class="form-control" @disabled(!$district_id)>
+        <select wire:model="area_id" class="form-control" @disabled(!$districtId)>
             <option value="">Select Area</option>
             @foreach ($areas as $area)
                 <option value="{{ $area->id }}">{{ $area->name }}</option>
             @endforeach
         </select>
         <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="button" wire:click="addArea" @disabled(!$district_id) title="Add New Area">
+            <button class="btn btn-outline-secondary" type="button" wire:click="addArea" @disabled(!$districtId) title="Add New Area">
                 <i class="fas fa-plus"></i>
             </button>
         </div>
