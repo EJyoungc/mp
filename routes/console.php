@@ -21,3 +21,8 @@ Schedule::command('app:send-pharmacy-ads')
     ->dailyAt('10:00')
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/pharmacy-ads-cron.log'));
+    
+Schedule::command('app:send-pharmacy-ads')
+    ->dailyAt('10:00')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/pharmacy-ads-cron.log'));
