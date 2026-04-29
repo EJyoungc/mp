@@ -277,7 +277,7 @@ class UsersLivewire extends Component
         $allUsersCount = $statsQuery->count();
 
         // Roles for adding users and filtering
-        $rolesQuery = Role::query()->groupBy('name');
+        $rolesQuery = Role::query()->select('id', 'name')->distinct();
         if ($loggedInUser->isPharmacyAdmin()) {
             $rolesQuery->where('name', 'practitioner');
         } elseif ($loggedInUser->role->name == 'admin') {
