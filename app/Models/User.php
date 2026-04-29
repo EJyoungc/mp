@@ -54,9 +54,12 @@ class User extends Authenticatable
         'multiple',
         'tuberculosis',
         'asthma',
-        'menstrual_cycle'
-
-
+        'menstrual_cycle',
+        'organization_id',
+        'organization_verify',
+        'current_team_id',
+        'district_id',
+        'area_id',
     ];
 
     /**
@@ -70,6 +73,16 @@ class User extends Authenticatable
         'two_factor_recovery_codes',
         'two_factor_secret',
     ];
+
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function area()
+    {
+        return $this->belongsTo(Area::class);
+    }
 
     /**
      * The accessors to append to the model's array form.
@@ -92,8 +105,6 @@ class User extends Authenticatable
         // 'phone',
         // 'traditional_authority',
         // 'last_normal_menstrual_period_date',
-
-
 
     ];
 
@@ -131,17 +142,85 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'leg_or_spine' => 'string',
+            'deformity' => 'string',
+            'still_births' => 'string',
+            'c_section' => 'string',
+            'vacum' => 'string',
+            'multiple' => 'string',
+            'aph' => 'string',
+            'pph' => 'string',
+            'pre_eclampsia' => 'string',
+            'tuberculosis' => 'string',
+            'asthma' => 'string',
+            'hypertension' => 'string',
+            'diabetes' => 'string',
+            'epilepsy' => 'string',
+            'renal_disease' => 'string',
+            'fistula_repair' => 'string',
+            'menstrual_cycle' => 'string',
         ];
     }
 
+    /**
+     * Standardize enum fields to lowercase before saving.
+     */
+    public function setAttribute($key, $value)
+    {
+        $enums = [
+            'leg_or_spine', 'deformity', 'still_births', 'c_section', 'vacum',
+            'multiple', 'aph', 'pph', 'pre_eclampsia', 'tuberculosis',
+            'asthma', 'hypertension', 'diabetes', 'epilepsy', 'renal_disease',
+            'fistula_repair', 'menstrual_cycle',
+        ];
 
-    public function organization(){
-        return $this->belongsTo(Organization::class);
+        if (in_array($key, $enums) && is_string($value)) {
+            $value = strtolower($value);
+        }
+
+        return parent::setAttribute($key, $value);
     }
 
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Role Helpers
+     */
+    public function isSystemAdmin(): bool
+    {
+        return $this->role && $this->role->name === 'system-admin';
+    }
+
+    public function isOrgAdmin(): bool
+    {
+        return $this->role && ($this->role->name === 'admin' || $this->role->name === 'system-admin');
+    }
+
+    public function isPharmacyAdmin(): bool
+    {
+        return $this->role && $this->role->name === 'admin' && $this->organization && $this->organization->is_pharmacy;
+    }
+
+    public function isDoctor(): bool
+    {
+        return $this->role && ($this->role->name === 'doctor' || $this->isOrgAdmin());
+    }
+
+    public function isPractitioner(): bool
+    {
+        return $this->role && ($this->role->name === 'practitioner' || $this->isDoctor());
+    }
+
+    public function isMother(): bool
+    {
+        return $this->role && $this->role->name === 'mother';
     }
 }

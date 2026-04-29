@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Trimester;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -21,9 +20,13 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
         $this->call(RoleSeeder::class);
+        $this->call(OrganizationSeeder::class);
         $this->call(UserSeeder::class);
         $this->call(TrimesterSeeder::class);
         $this->call(WeekSeeder::class);
         $this->call(DaySeeder::class);
+        $this->call(DayRangeSeeder::class);
+        $this->call(TipSeeder::class);
+        $this->call(HistorySeeder::class);
     }
 }

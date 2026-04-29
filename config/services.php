@@ -18,6 +18,12 @@ return [
         'token' => env('POSTMARK_TOKEN'),
     ],
 
+    'africastalking' => [
+        'username' => env('AFRICASTALKING_USERNAME', 'sandbox'),
+        'api_key' => env('AFRICASTALKING_API_KEY'),
+        'from' => env('AFRICASTALKING_FROM', 'Maasms'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

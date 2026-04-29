@@ -1,66 +1,52 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# MaaSMS - Maternal Health Monitoring System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+MaaSMS is an innovative platform designed to empower mothers with vital health insights and pregnancy tips delivered via SMS. Built on a robust multi-tenant architecture, it allows health institutions to manage their staff and patients independently while leveraging shared knowledge through a global template system.
 
-## About Laravel
+## Key Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Multi-Tenancy**: Complete isolation of data between different health organizations.
+- **Hierarchical Role System**:
+  - **Super Admin**: System-wide management, organization onboarding, and template moderation.
+  - **Org Admin**: Management of users (Doctors, Practitioners, Mothers) within their institution.
+  - **Pharmacy Admin**: Specialized role with restricted access to maternal data, focused on ad outreach.
+  - **Doctor**: Clinical oversight, mother management, and approval of health tips.
+  - **Practitioner**: Registration of mothers and creation of tailored health tips.
+  - **Mother**: Automated SMS delivery of pregnancy tips based on their specific journey.
+- **Secure Onboarding**: Email invitation system with token-based registration and pre-approval.
+- **Hierarchical Geolocation**: Malawi-specific District and Area management for all users and organizations.
+- **Member Verification**: Robust approval workflow for new organization members.
+- **Monetization Engine**: Automated, area-based pharmacy advertisements targeted by geography and pregnancy stage.
+- **Ad Delivery Tracking**: Comprehensive delivery logging with manual resend capabilities and API response inspection.
+- **Tip Management Workflow**: Tiered approval process (Practitioner -> Doctor) ensuring clinical accuracy.
+- **Template Sharing**: Cross-organization knowledge sharing facilitated by Super Admins.
+- **Scalable SMS Delivery**: Integrated with Africa's Talking Gateway using Laravel Queues for high-volume delivery.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Backend**: Laravel 11
+- **Frontend**: Livewire 3, TailwindCSS, Bootstrap 4 (AdminLTE)
+- **Database**: SQLite (Default)
+- **SMS Gateway**: Africa's Talking
+- **Job Processing**: Redis/Database Queues
 
-## Learning Laravel
+## Getting Started
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Prerequisites
+- PHP 8.3+
+- Composer
+- Node.js & NPM
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Installation
+1. Clone the repository.
+2. Install dependencies: `composer install && npm install`
+3. Copy `.env.example` to `.env` and configure your Africa's Talking credentials.
+4. Run migrations: `php artisan migrate --seed`
+5. Start the queue worker: `php artisan queue:work`
+6. Run the dev server: `php artisan serve`
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Documentation
+- [Multi-Tenancy & RBAC Guide](docs/multi-tenancy.md)
+- [SMS Service Configuration](docs/sms-service.md)
 
 ## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Proprietary for MicroMek / Techlink360.

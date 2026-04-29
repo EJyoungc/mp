@@ -19,7 +19,11 @@
                         width="60" height="60" class="rounded-circle" alt="User Image">
                 </div>
                 <div class="info">
-                    <a href="{{ route('user.profile') }}" class="d-block text-capitalize "> {{ $name->name }} </a>
+                    <a href="{{ route('user.profile') }}" class="d-block text-capitalize font-weight-bold"> {{ $name->name }} </a>
+                    <span class="text-xs text-muted text-uppercase d-block">{{ Auth::user()->role->name ?? 'No Role' }}</span>
+                    @if(Auth::user()->organization)
+                        <span class="text-xs text-info d-block"><i class="fas fa-hospital mr-1"></i>{{ Auth::user()->organization->name }}</span>
+                    @endif
                 </div>
             </div>
 
@@ -37,7 +41,13 @@
                             <a href="{{ route('dashboard') }}" class="nav-link ">
                                 <i class="nav-icon fas fa-tachometer-alt"></i>
                                 <p>Dashboard</p>
-                                {{-- <livewire:messages.checker-livewire> --}}
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('mothers') }}" class="nav-link ">
+                                <i class="nav-icon fas fa-female"></i>
+                                <p>Mothers</p>
                             </a>
                         </li>
 
@@ -97,6 +107,19 @@
                             </a>
                         </li>
 
+                        <li class="nav-item">
+                            <a href="{{ route('ad.histories') }}" class="nav-link">
+                                <i class="nav-icon fas fa-ad"></i>
+                                <p>Ad Histories</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('settings') }}" class="nav-link">
+                                <i class="nav-icon fas fa-cog"></i>
+                                <p>Settings</p>
+                            </a>
+                        </li>
+
                     @endif
 
                     {{-- admin --}}
@@ -106,7 +129,14 @@
                         <a href="{{ route('dashboard') }}" class="nav-link ">
                             <i class="nav-icon fas fa-tachometer-alt"></i>
                             <p>Dashboard</p>
-                            <livewire:messages.checker-livewire>
+                        </a>
+                    </li>
+
+                    @if(!Auth::user()->isPharmacyAdmin())
+                    <li class="nav-item">
+                        <a href="{{ route('mothers') }}" class="nav-link ">
+                            <i class="nav-icon fas fa-female"></i>
+                            <p>Mothers</p>
                         </a>
                     </li>
 
@@ -116,6 +146,7 @@
                             <p>Organizations</p>
                         </a>
                     </li>
+                    @endif
 
                     <li class="nav-item">
                         <a href="{{ route('users') }}" class="nav-link ">
@@ -124,7 +155,7 @@
                         </a>
                     </li>
 
-
+                    @if(!Auth::user()->isPharmacyAdmin())
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-copy"></i>
@@ -158,6 +189,7 @@
                             </p>
                         </a>
                     </li>
+                    @endif
 
                     @endif
                     {{-- doctor  --}}
@@ -167,7 +199,13 @@
                         <a href="{{ route('dashboard') }}" class="nav-link ">
                             <i class="nav-icon fas fa-tachometer-alt"></i>
                             <p>Dashboard</p>
-                            <livewire:messages.checker-livewire>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('mothers') }}" class="nav-link ">
+                            <i class="nav-icon fas fa-female"></i>
+                            <p>Mothers</p>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -220,7 +258,13 @@
                         <a href="{{ route('dashboard') }}" class="nav-link ">
                             <i class="nav-icon fas fa-tachometer-alt"></i>
                             <p>Dashboard</p>
-                            <livewire:messages.checker-livewire>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('mothers') }}" class="nav-link ">
+                            <i class="nav-icon fas fa-female"></i>
+                            <p>Mothers</p>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -237,7 +281,13 @@
                             <a href="{{ route('dashboard') }}" class="nav-link ">
                                 <i class="nav-icon fas fa-tachometer-alt"></i>
                                 <p>Dashboard</p>
-                                <livewire:messages.checker-livewire>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('mothers') }}" class="nav-link ">
+                                <i class="nav-icon fas fa-female"></i>
+                                <p>Mothers</p>
                             </a>
                         </li>
                     @endif

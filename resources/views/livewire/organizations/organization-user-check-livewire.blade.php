@@ -24,6 +24,28 @@
                 <x-input-error for="address" />
             </div>
             <div class="form-group">
+                <label for="">District</label>
+                <select class="form-control" wire:model.live="district_id">
+                    <option value="">-- Select District --</option>
+                    @foreach(\App\Models\District::all() as $district)
+                        <option value="{{ $district->id }}">{{ $district->name }}</option>
+                    @endforeach
+                </select>
+                <x-input-error for="district_id" />
+            </div>
+            <div class="form-group">
+                <label for="">Area</label>
+                <select class="form-control" wire:model="area_id">
+                    <option value="">-- Select Area --</option>
+                    @if($district_id)
+                        @foreach(\App\Models\Area::where('district_id', $district_id)->get() as $area)
+                            <option value="{{ $area->id }}">{{ $area->name }}</option>
+                        @endforeach
+                    @endif
+                </select>
+                <x-input-error for="area_id" />
+            </div>
+            <div class="form-group">
                 <label for="">Website</label>
                 <input type="text" class="form-control" wire:model="website" placeholder="Enter website">
                 <x-input-error for="website" />

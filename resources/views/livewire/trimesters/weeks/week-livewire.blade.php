@@ -91,7 +91,7 @@
                                             <th>Tips</th>
                                             <th>Day</th>
                                             <th>Time</th>
-                                            <th>Week</th>
+                                            <th>Status</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -100,34 +100,61 @@
                                             <tr>
                                                 <td scope="row">{{ $item->id }}</td>
 
-                                                <td>{{ $item->tip }}</td>
+                                                <td>
+                                                    {{ $item->tip }}
+                                                    @if($item->creator)
+                                                        <small class="d-block text-muted">By: {{ $item->creator->name }}</small>
+                                                    @endif
+                                                </td>
                                                 <td>{{ $item->day_id }}</td>
                                                 <td>
-                                                    <div class="text-capitalize"  >{{ $item->day_range->name }}</div>
-                                                <small class=" text-muted d-block" >({{ $item->day_range->start_time }} - {{ $item->day_range->end_time }})</small>
+                                                    <div class="text-capitalize">{{ $item->day_range->name }}</div>
+                                                    <small class="text-muted d-block">({{ $item->day_range->start_time }} - {{ $item->day_range->end_time }})</small>
                                                 </td>
-                                                <td><div class="badge bg-success">{{ $item->week->week }}</div></td>
+                                                <td>
+                                                    @if($item->status === 'approved')
+                                                        <span class="badge bg-success">Approved</span>
+                                                        @if($item->approver)
+                                                            <small class="d-block text-muted">By: {{ $item->approver->name }}</small>
+                                                        @endif
+                                                    @elseif($item->status === 'pending_approval')
+                                                        <span class="badge bg-warning">Pending</span>
+                                                    @else
+                                                        <span class="badge bg-secondary">{{ $item->status }}</span>
+                                                    @endif
+                                                </td>
                                                 
 
                                                 <td>
                                                     <div class="dropdown open">
-                                                        <a class="btn btn-dark dropdown-toggle" type="button"
+                                                        <a class="btn btn-dark btn-sm dropdown-toggle" type="button"
                                                             id="triggerId" data-toggle="dropdown" aria-haspopup="true"
                                                             aria-expanded="false">
-                                                            options
+                                                            Actions
                                                         </a>
                                                         <div class="dropdown-menu" aria-labelledby="triggerId">
-                                                            {{-- <a class="dropdown-item" href="#">Add Tip</a> --}}
+                                                            @if(auth()->user()->isDoctor() && $item->status === 'pending_approval')
+                                                                <a class="dropdown-item text-success"
+                                                                    wire:click.prevent="approve({{ $item->id }})"
+                                                                    href="#"><i class="fas fa-check"></i> Approve</a>
+                                                            @endif
                                                             <a class="dropdown-item"
                                                                 wire:click.prevent="create({{ $item->id }})"
-                                                                href="#">Edit</a>
+                                                                href="#"><i class="fas fa-edit"></i> Edit</a>
+                                                            @if(auth()->user()->isSystemAdmin())
+                                                                <a class="dropdown-item {{ $item->is_template ? 'text-danger' : 'text-primary' }}"
+                                                                    wire:click.prevent="markAsTemplate({{ $item->id }})"
+                                                                    href="#">
+                                                                    <i class="fas fa-star"></i> {{ $item->is_template ? 'Unmark Template' : 'Mark as Template' }}
+                                                                </a>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="4" class="text-center" scope="row">EMPTY</td>
+                                                <td colspan="6" class="text-center" scope="row">No tips found for this week.</td>
                                             </tr>
                                         @endforelse
 
@@ -137,6 +164,44 @@
 
                         </div>
                     </div>
+
+                    @if($templates->count() > 0)
+                        <div class="card mt-4">
+                            <div class="card-header bg-dark">
+                                <h3 class="card-title">Global Templates (Shared)</h3>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Tip</th>
+                                                <th>Original Org</th>
+                                                <th>Day/Time</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($templates as $template)
+                                                <tr>
+                                                    <td>{{ $template->tip }}</td>
+                                                    <td>{{ $template->organization->name ?? 'System' }}</td>
+                                                    <td>
+                                                        {{ $template->day_id }} / {{ $template->day_range->name }}
+                                                    </td>
+                                                    <td>
+                                                        <button wire:click="useTemplate({{ $template->id }})" class="btn btn-sm btn-outline-dark">
+                                                            <i class="fas fa-copy"></i> Use as Template
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

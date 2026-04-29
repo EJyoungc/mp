@@ -2,122 +2,111 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
+use App\Jobs\SendSmsTipJob;
 use App\Models\History;
 use App\Models\MessageHistory;
+use App\Models\Setting;
 use App\Models\Tip;
-
-use Livewire\Component;
-use AfricasTalking\SDK\AfricasTalking;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class CheckMessages extends Command
 {
-
-    private $username   = "DumiKaliati";
-    private $apiKey     = "atsk_1b93e9047e28c4f2d33a74bc73e65782aa5bd04e8390cae5cb491861b37c05ddbbb59876";
-
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
     protected $signature = 'app:check-messages';
-    protected $description = 'Check user histories and send scheduled tips via SMS';
 
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Check user histories and dispatch scheduled tips via queued SMS jobs';
+
+    /**
+     * Execute the console command.
+     */
     public function handle()
     {
-        $this->test(); // Run your message check logic
-    }
+        $timezone = Setting::get('app_timezone', config('app.timezone'));
+        $this->info('🚀 Starting message check ('.$timezone.'): '.now($timezone));
 
-    public function test()
-    {
-        $this->info('✅ running >> ' . now());
+        // Use chunking to handle large datasets efficiently
+        History::with(['mother', 'day_range'])->chunk(100, function ($histories) use ($timezone) {
+            foreach ($histories as $history) {
+                $weekdata = $history->calculate_weekv2($timezone);
 
-        $histories = History::all();
-        $this->info('Total histories: ' . $histories->count());
+                $tips = Tip::with('day_range')
+                    ->where('week_id', (int) $weekdata['weeks'])
+                    ->where('day_id', (int) $weekdata['days'])
+                    ->approved() // Only send approved tips
+                    ->get();
 
-        foreach ($histories as $history) {
-            $weekdata = $history->calculate_weekv2();
-            $this->info("History ID: {$history->id}, Mother ID: {$history->mother_id}, Week: {$weekdata['weeks']}, Day: {$weekdata['days']}");
+                // Using dynamic timezone for consistency
+                $now = Carbon::now($timezone);
 
-            $tips = Tip::where('week_id', (int)$weekdata['weeks'])
-                ->where('day_id', (int)$weekdata['days'])
-                ->get();
-
-            $this->info("Found " . $tips->count() . " tips for week {$weekdata['weeks']} and day {$weekdata['days']}");
-
-            $now = Carbon::now("GMT+2");
-
-            foreach ($tips as $t) {
-                $messagehistory = MessageHistory::where('tip_id', $t->id)
-                    ->where('week_id', $weekdata['weeks'])
-                    ->where('day_range_id', $t->day_range_id)
-                    ->where('mother_id', $history->mother_id)
-                    ->where('history_id', $history->id)
-                    ->first();
-
-                if (!$messagehistory) {
-                    $messagehistory = MessageHistory::create([
-                        'tip_id' => $t->id,
-                        'week_id' => $weekdata['weeks'],
-                        'day_id' => $t->day_id,
-                        'day_range_id' => $t->day_range_id,
-                        'mother_id' => $history->mother_id,
-                        'history_id' => $history->id,
-                        'message_status' => 'unsent',
-                    ]);
-
-                    $this->info("Created new MessageHistory ID: {$messagehistory->id}");
-                } else {
-                    $this->info("Existing MessageHistory ID: {$messagehistory->id}, Status: {$messagehistory->message_status}");
-                }
-
-                $isTime = $now->between($t->day_range->start_time, $t->day_range->end_time);
-                $this->info("Now: {$now}, Tip Start: {$t->day_range->start_time}, Tip End: {$t->day_range->end_time}, Within Range: " . ($isTime ? 'Yes' : 'No'));
-
-                if ($messagehistory->message_status === 'unsent' && $isTime) {
-                    $this->info("Sending message to {$history->mother->name} ({$history->mother->phone}): {$t->tip}");
-                    $this->sendMessage(
-                        $messagehistory,
-                        $history->mother->name,
-                        $t->tip,
-                        $history->mother->phone
-                    );
+                foreach ($tips as $tip) {
+                    $this->processTip($history, $tip, $weekdata, $now);
                 }
             }
-        }
+        });
 
-        $this->info('✅ CheckMessages command finished at ' . now());
+        $this->info('✅ CheckMessages command finished.');
     }
 
-    private function sendMessage($messagehistory, $motherName, $tip, $mobile_number)
+    /**
+     * Process an individual tip for a history record.
+     */
+    private function processTip($history, $tip, $weekdata, $now)
     {
-        $AT = new AfricasTalking($this->username, $this->apiKey);
-        $sms = $AT->sms();
+        // Ensure we have a valid day_range and start/end times
+        if (! $tip->day_range) {
+            Log::warning("Tip {$tip->id} is missing a day_range.");
 
-        $result = $sms->send([
-            'to'      => $this->formatPhoneNumber($mobile_number),
-            'message' => $tip,
-            'from'    => 'Maasms',
-        ]);
-
-        $this->info('Raw AfricasTalking response: ' . json_encode($result));
-        $messagehistory->api_response = $result;
-
-        $status = $result['data']['SMSMessageData']['Recipients'][0]['status'] ?? null;
-
-        if ($status === "Success") {
-            $messagehistory->message_status = 'sent';
-            $messagehistory->save();
-            $this->info('Message sent to ' . $motherName . ': ' . $tip);
-        } else {
-            $messagehistory->message_status = 'failed';
-            $messagehistory->save();
-            $this->error('Message failed for ' . $motherName);
+            return;
         }
-    }
 
-    private function formatPhoneNumber($phoneNumber)
-    {
-        if (substr($phoneNumber, 0, 1) === '0') {
-            return '+265' . substr($phoneNumber, 1);
+        $isTime = $now->between($tip->day_range->start_time, $tip->day_range->end_time);
+
+        if (! $isTime) {
+            return;
         }
-        return $phoneNumber;
+
+        $messageHistory = MessageHistory::firstOrCreate(
+            [
+                'tip_id' => $tip->id,
+                'week_id' => $weekdata['weeks'],
+                'day_range_id' => $tip->day_range_id,
+                'mother_id' => $history->mother_id,
+                'history_id' => $history->id,
+            ],
+            [
+                'day_id' => $tip->day_id,
+                'message_status' => 'unsent',
+            ]
+        );
+
+        if ($messageHistory->message_status !== 'unsent') {
+            return;
+        }
+
+        if (empty($history->mother->phone)) {
+            Log::warning("Mother {$history->mother_id} has no phone number. Skipping.");
+            $this->error("Skipping Mother: {$history->mother->name} (No phone number)");
+
+            return;
+        }
+
+        $this->info("Dispatching message for Mother: {$history->mother->name}");
+
+        SendSmsTipJob::dispatch(
+            $messageHistory,
+            $history->mother->phone,
+            $tip->tip
+        );
     }
 }

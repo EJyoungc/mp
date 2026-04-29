@@ -6,34 +6,151 @@ use App\Exports\MothersSampleExport;
 use App\Imports\MothersImport;
 use App\Models\MessageHistory;
 use App\Models\Organization;
+use App\Models\PharmacyAd;
 use App\Models\Tip;
+use App\Models\Trimester;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
+// Re-use for ads
+
 class DashboardLivewire extends Component
 {
-
-    use WithFileUploads;
     use LivewireAlert;
+    use WithFileUploads;
+
     public $modal = false;
+
     public $modal2 = false;
+
+    public $adModal = false; // New for Ads
+
     public $file;
+
     public $previewData = [];
+
     public $previewTitleData = [];
 
     public $search = '';
-    public $liststatus = false;
-    public $user;
-    public $organization;
-    public $organizations =  [];
 
-    public function save(){
+    public $liststatus = false;
+
+    public $user;
+
+    public $organization;
+
+    public $organizations = [];
+
+    public $product_name;
+
+    public $ad_message;
+
+    public $target_week_start = 1;
+
+    public $target_week_end = 40;
+
+    public $trimester_id;
+
+    public $ad_id;
+
+    public function createAd()
+    {
+        $user = auth()->user();
+        $isPharmacyOwner = $user->organization && $user->organization->is_pharmacy && $user->organization->owner_id == $user->id;
+
+        if (! $user->isSystemAdmin() && ! $isPharmacyOwner) {
+            return;
+        }
+
+        $this->reset(['ad_id', 'product_name', 'ad_message', 'target_week_start', 'target_week_end', 'trimester_id']);
+        $this->adModal = true;
+    }
+
+    public function editAd($id)
+    {
+        $user = auth()->user();
+        $ad = PharmacyAd::findOrFail($id);
+
+        if (! $user->isSystemAdmin() && $ad->organization_id != $user->organization_id) {
+            $this->alert('error', 'Unauthorized access.');
+
+            return;
+        }
+
+        $this->ad_id = $ad->id;
+        $this->product_name = $ad->product_name;
+        $this->ad_message = $ad->ad_message;
+        $this->target_week_start = $ad->target_week_start;
+        $this->target_week_end = $ad->target_week_end;
+        $this->trimester_id = $ad->trimester_id;
+
+        $this->adModal = true;
+    }
+
+    public function storeAd()
+    {
+        $user = auth()->user();
+        $isPharmacyOwner = $user->organization && $user->organization->is_pharmacy && $user->organization->owner_id == $user->id;
+
+        if (! $user->isSystemAdmin() && ! $isPharmacyOwner) {
+            return;
+        }
+
+        $this->validate([
+            'product_name' => 'required|string|max:255',
+            'ad_message' => 'required|string|max:160',
+            'target_week_start' => 'nullable|integer|min:1',
+            'target_week_end' => 'nullable|integer|max:42',
+            'trimester_id' => 'nullable|exists:trimesters,id',
+        ]);
+
+        $orgId = $user->isSystemAdmin() ? null : $user->organization_id;
+
+        if ($this->ad_id) {
+            $ad = PharmacyAd::findOrFail($this->ad_id);
+            $ad->update([
+                'product_name' => $this->product_name,
+                'ad_message' => $this->ad_message,
+                'target_week_start' => $this->target_week_start,
+                'target_week_end' => $this->target_week_end,
+                'trimester_id' => $this->trimester_id,
+            ]);
+            $this->alert('success', 'Pharmacy Advertisement updated successfully');
+        } else {
+            PharmacyAd::create([
+                'product_name' => $this->product_name,
+                'ad_message' => $this->ad_message,
+                'target_week_start' => $this->target_week_start,
+                'target_week_end' => $this->target_week_end,
+                'trimester_id' => $this->trimester_id,
+                'organization_id' => $orgId,
+            ]);
+            $this->alert('success', 'Pharmacy Advertisement created successfully');
+        }
+
+        $this->cancel();
+    }
+
+    public function toggleAd($id)
+    {
+        $user = auth()->user();
+        $ad = PharmacyAd::findOrFail($id);
+
+        // Only admin or owner can toggle
+        if (! $user->isSystemAdmin() && $ad->organization_id != $user->organization_id) {
+            return;
+        }
+
+        $ad->update(['is_active' => ! $ad->is_active]);
+        $this->alert('success', 'Ad status updated');
+    }
+
+    public function save()
+    {
 
         $this->user->organization_id = $this->organization->id;
         $this->user->save();
@@ -41,62 +158,61 @@ class DashboardLivewire extends Component
         $this->cancel();
     }
 
-    public function remove_organization($id){
+    public function remove_organization($id)
+    {
         $user = User::findOrFail($id);
         $user->organization_id = null;
         $user->save();
         $this->alert('success', 'Organization successfully removed');
     }
 
-    public function select_org($id){
+    public function select_org($id)
+    {
         $this->organization = Organization::findOrFail($id);
-        $this->search = "";
+        $this->search = '';
         $this->organizations = [];
         $this->liststatus = false;
 
     }
 
-    public function remove_org(){
-            $this->organization = null;
+    public function remove_org()
+    {
+        $this->organization = null;
     }
 
     public function updatedSearch()
     {
         if (strlen($this->search) > 1) {
             $this->liststatus = false;
-            $this->organizations = Organization::where('name', 'like', '%' . $this->search . '%')->limit(10)->get();
+            $this->organizations = Organization::where('name', 'like', '%'.$this->search.'%')->limit(10)->get();
         } else {
             $this->organizations = [];
         }
     }
 
-
     #[Computed]
-    function convertDate($value)
+    public function convertDate($value)
     {
         if (is_numeric($value)) {
             return Date::excelToDateTimeObject($value)->format('Y-m-d');
         }
+
         return $value;
     }
 
-
-    public function add_organization($id){
-
+    public function add_organization($id)
+    {
 
         $this->user = User::findOrFail($id);
         $this->modal2 = true;
 
-
-
     }
-
-
 
     public function addMothers()
     {
         $this->modal = true;
     }
+
     /**
      * Validate and load a preview of the Excel file data.
      *
@@ -145,53 +261,146 @@ class DashboardLivewire extends Component
         $this->file = null;
     }
 
-    public function accept($id)
+    public function approve($id)
     {
-        $user = User::findOrFail($id);
-        if (!empty($user->organization_id)) {
-            if ($user->organization_verify == "pending" || $user->organization_verify == "declined") {
-                $user->organization_verify = "accepted";
-                $user->save();
-                $this->alert('success', 'User Accepted');
-            } else {
-                $user->organization_verify = "declined";
-                $user->save();
-                $this->alert('warning', 'User Declined');
+        $userToApprove = User::findOrFail($id);
+        $user = auth()->user();
+
+        // Authorization check: Only System Admin or Organization Owner
+        if (! $user->isSystemAdmin()) {
+            $isOwner = Organization::where('id', $userToApprove->organization_id)
+                ->where('owner_id', $user->id)
+                ->exists();
+
+            if (! $isOwner) {
+                $this->alert('error', 'Unauthorized action.');
+
+                return;
             }
+        }
+
+        if (! empty($userToApprove->organization_id)) {
+            $userToApprove->organization_verify = 'approved';
+            $userToApprove->save();
+            $this->alert('success', 'User Approved');
         } else {
             $this->alert('warning', 'User Has No Organization');
         }
     }
 
+    public function decline($id)
+    {
+        $userToDecline = User::findOrFail($id);
+        $user = auth()->user();
+
+        // Authorization check: Only System Admin or Organization Owner
+        if (! $user->isSystemAdmin()) {
+            $isOwner = Organization::where('id', $userToDecline->organization_id)
+                ->where('owner_id', $user->id)
+                ->exists();
+
+            if (! $isOwner) {
+                $this->alert('error', 'Unauthorized action.');
+
+                return;
+            }
+        }
+
+        $userToDecline->organization_verify = 'declined';
+        $userToDecline->save();
+        $this->alert('warning', 'User Declined');
+    }
+
     public function cancel()
     {
-        $this->reset(['modal', 'file', 'modal2',  'previewData']);
+        $this->reset(['modal', 'file', 'modal2', 'previewData', 'adModal', 'product_name', 'ad_message', 'target_week_start', 'target_week_end', 'trimester_id', 'ad_id']);
     }
 
     public function export()
     {
         return Excel::download(new MothersSampleExport, 'mothers.xlsx');
     }
+
     public function render()
     {
+        $user = auth()->user();
 
-        $requests = User::whereIn('role_id', [2, 3, 5])->orderby('organization_verify', 'desc')->get();
+        // System Admins see all requests, Org Owners see their organization's requests
+        $requestsQuery = User::where('organization_id', '!=', null)
+            ->where('organization_verify', 'pending')
+            ->orderBy('created_at', 'desc');
 
-
-
-        if (Auth::user()->role->name === 'mother') {
-            $mothers->where('role_id', 4)->where('id', Auth::user()->id)->get();
-        } else {
-            $mothers = User::where('role_id', 4)->get();
+        if (! $user->isSystemAdmin()) {
+            // Check if user is an owner of any organization
+            $ownedOrgIds = Organization::where('owner_id', $user->id)->pluck('id');
+            if ($ownedOrgIds->isNotEmpty()) {
+                $requestsQuery->whereIn('organization_id', $ownedOrgIds);
+            } else {
+                $requestsQuery->where('id', 0); // Empty result if not admin or owner
+            }
         }
-        $users = User::all();
-        $messages = MessageHistory::all();
-        $tips = Tip::all();
+        $requests = $requestsQuery->get();
+
+        // Mothers logic
+        if ($user->isMother()) {
+            $mothers = User::where('id', $user->id)->get();
+        } else {
+            $mothersQuery = User::where('role_id', 4); // mother role
+            if (! $user->isSystemAdmin()) {
+                $mothersQuery->where('organization_id', $user->organization_id);
+            }
+            $mothers = $mothersQuery->get();
+        }
+
+        // Stats
+        $usersQuery = User::query();
+        $messagesQuery = MessageHistory::query();
+
+        if (! $user->isSystemAdmin()) {
+            $usersQuery->where('organization_id', $user->organization_id);
+            $messagesQuery->where('organization_id', $user->organization_id);
+        }
+
+        $users = $usersQuery->get();
+        $messages = $messagesQuery->get();
+        $tips = Tip::all(); // Auto-scoped
+
+        // Comprehensive Analytics
+        $analytics = [
+            'doctors' => $users->filter(fn ($u) => $u->role && $u->role->name === 'doctor')->count(),
+            'practitioners' => $users->filter(fn ($u) => $u->role && $u->role->name === 'practitioner')->count(),
+            'organizations' => $user->isSystemAdmin() ? Organization::count() : 1,
+            'sent_success' => $messages->where('message_status', 'sent')->count(),
+            'sent_failed' => $messages->where('message_status', 'failed')->count(),
+            'delivery_rate' => $messages->count() > 0 ? round(($messages->where('message_status', 'sent')->count() / $messages->count()) * 100, 1) : 0,
+        ];
+
+        // Pharmacy Ads (System Admin sees all, Pharmacy Owners see theirs)
+        $isPharmacyOwner = $user->organization && $user->organization->is_pharmacy && $user->organization->owner_id == $user->id;
+        $adsQuery = PharmacyAd::latest();
+
+        if ($user->isSystemAdmin()) {
+            $ads = $adsQuery->get();
+        } elseif ($isPharmacyOwner) {
+            $ads = $adsQuery->where('organization_id', $user->organization_id)->get();
+        } else {
+            $ads = collect();
+        }
+
+        // Count tips pending approval for doctors/admins
+        $pendingTipsCount = Tip::where('status', Tip::STATUS_PENDING)->count();
+
+        $trimesters = Trimester::all();
+
         return view('livewire.dashboard.dashboard-livewire')
             ->with('mothers', $mothers)
             ->with('users', $users)
             ->with('messages', $messages)
             ->with('tips', $tips)
-            ->with('requests', $requests);
+            ->with('requests', $requests)
+            ->with('pendingTipsCount', $pendingTipsCount)
+            ->with('analytics', $analytics)
+            ->with('trimesters', $trimesters)
+            ->with('ads', $ads);
     }
 }

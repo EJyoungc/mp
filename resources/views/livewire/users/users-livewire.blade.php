@@ -3,12 +3,12 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Users</h1>
+                    <h1 class="m-0 text-bold text-navy">Users</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-                        <li class="breadcrumb-item active">User</li>
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Users</li>
                     </ol>
                 </div>
             </div>
@@ -17,80 +17,94 @@
 
     <div class="content">
         <div class="container-fluid">
+            <!-- Analytics Row -->
             <div class="row">
-                <div class="col-12 col-lg-3 col-md-4">
-                    <div class="card bg-cyan">
-                        <div class="card-body">
-                            <h4>All Users</h4>
-                            <h5>{{ $allUsersCount }}</h5>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info shadow-sm">
+                        <div class="inner">
+                            <h3>{{ $allUsersCount }}</h3>
+                            <p>Total Staff</p>
                         </div>
+                        <div class="icon"><i class="fas fa-users"></i></div>
                     </div>
                 </div>
-
-                <div class="col-12 col-lg-3 col-md-4">
-                    <div class="card bg-teal ">
-                        <div class="card-body">
-                            <h4>Doctors</h4>
-                            <h5>{{ $doctorsCount }}</h5>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-teal shadow-sm">
+                        <div class="inner">
+                            <h3>{{ $doctorsCount }}</h3>
+                            <p>Doctors</p>
                         </div>
+                        <div class="icon"><i class="fas fa-user-md"></i></div>
                     </div>
                 </div>
-                <div class="col-12 col-lg-3 col-md-4">
-                    <div class="card bg-fuchsia ">
-                        <div class="card-body">
-                            <h4>Mothers</h4>
-                            <h5>{{ $mothersCount }}</h5>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-fuchsia shadow-sm">
+                        <div class="inner">
+                            <h3>{{ $mothersCount }}</h3>
+                            <p>Mothers</p>
                         </div>
+                        <div class="icon"><i class="fas fa-female"></i></div>
                     </div>
                 </div>
-                <div class="col-12 col-lg-3 col-md-4">
-                    <div class="card bg-gray ">
-                        <div class="card-body">
-                            <h4>Practitioners</h4>
-                            <h5>{{ $practitionersCount }}</h5>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning shadow-sm">
+                        <div class="inner">
+                            <h3>{{ $practitionersCount }}</h3>
+                            <p>Practitioners</p>
                         </div>
+                        <div class="icon"><i class="fas fa-user-nurse"></i></div>
                     </div>
                 </div>
             </div>
 
-            <div class="row mb-3">
-                <div class="col-md-3">
-                    <input type="text" wire:model.live="search" class="form-control" placeholder="Search by name, email, phone...">
-                </div>
-                <div class="col-md-2">
-                    <select wire:model.live="role_filter" class="form-control">
-                        <option value="">All Roles</option>
-                        @foreach($roles as $role)
-                            <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select wire:model.live="organization_filter" class="form-control">
-                        <option value="">All Organizations</option>
-                        @foreach($organizations as $org)
-                            <option value="{{ $org->id }}">{{ $org->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select wire:model.live="perPage" class="form-control">
-                        <option value="10">10 per page</option>
-                        <option value="25">25 per page</option>
-                        <option value="50">50 per page</option>
-                    </select>
-                </div>
-                <div class="col-md-2 text-right">
-                    <div class="dropdown">
-                        <button class="btn btn-dark dropdown-toggle" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Add User
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="triggerId">
-                            @forelse ($roles as $item)
-                                <a class="dropdown-item text-capitalize" href="{{ route('users.create', $item->name) }}">{{ $item->name }}</a>
-                            @empty
-                                <a class="dropdown-item disabled" href="#">No roles available</a>
-                            @endforelse
+            <!-- Search & Actions Row -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                                </div>
+                                <input type="text" wire:model.live="search" class="form-control border-left-0" placeholder="Search name, email or phone...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <select wire:model.live="role_filter" class="form-control">
+                                <option value="">All Roles</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @if(auth()->user()->isSystemAdmin())
+                        <div class="col-md-2">
+                            <select wire:model.live="organization_filter" class="form-control">
+                                <option value="">All Organizations</option>
+                                @foreach($organizations as $org)
+                                    <option value="{{ $org->id }}">{{ $org->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+                        <div class="col text-right">
+                            <div class="btn-group mr-2">
+                                <button type="button" wire:click="showInviteModal" class="btn btn-outline-navy rounded-pill px-4">
+                                    <i class="fas fa-paper-plane mr-2"></i> Invite User
+                                </button>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-navy rounded-pill px-4 dropdown-toggle" data-toggle="dropdown">
+                                    <i class="fas fa-user-plus mr-2"></i> Add New User
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right shadow border-0">
+                                    @foreach ($roles as $item)
+                                        <a class="dropdown-item py-2" href="{{ route('users.create', $item->name) }}">
+                                            <i class="fas fa-chevron-right mr-2 text-xs text-muted"></i> {{ ucfirst($item->name) }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -98,69 +112,89 @@
 
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
+                    <div class="card shadow-sm border-0 rounded-lg overflow-hidden">
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light text-navy">
                                         <tr>
-                                            <th>#</th>
-                                            <th>Name / Email</th>
-                                            <th>Role</th>
-                                            <th>Organization</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
+                                            <th class="px-4 py-3">#</th>
+                                            <th class="py-3">Staff / User Info</th>
+                                            <th class="py-3">Role & Organization</th>
+                                            <th class="py-3 text-center">Verification</th>
+                                            <th class="py-3 text-center">Status</th>
+                                            <th class="py-3 text-center">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @forelse ($users as $item)
-                                            <tr>
-                                                <td>{{ $users->firstItem() + $loop->index }}</td>
+                                            <tr wire:key="user-{{ $item->id }}">
+                                                <td class="px-4">{{ $users->firstItem() + $loop->index }}</td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <div class="mr-2">
-                                                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <circle cx="12" cy="8" r="4" fill="#4A5568" />
-                                                                <ellipse cx="12" cy="20" rx="7" ry="4" fill="#4A5568" />
-                                                            </svg>
+                                                        <div class="avatar-circle bg-soft-navy text-navy mr-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 50%; background: #eef2f7; font-weight: bold;">
+                                                            {{ strtoupper(substr($item->name, 0, 1)) }}
                                                         </div>
                                                         <div>
                                                             <span class="text-capitalize font-weight-bold d-block">{{ $item->name }}</span>
-                                                            <small class="text-muted">{{ $item->email }}</small>
+                                                            <small class="text-muted"><i class="fas fa-envelope mr-1"></i> {{ $item->email }}</small>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-{{ $item->role->name === 'system-admin' ? 'success' : ($item->role->name === 'admin' ? 'cyan' : ($item->role->name === 'doctor' ? 'teal' : ($item->role->name === 'mother' ? 'fuchsia' : ($item->role->name === 'practitioner' ? 'warning' : 'secondary')))) }}">
-                                                        {{ ucfirst($item->role->name) }}
-                                                    </span>
+                                                    <div class="mb-1">
+                                                        <span class="badge badge-pill px-2 py-1 bg-soft-navy text-navy border">
+                                                            {{ ucfirst($item->role->name) }}
+                                                        </span>
+                                                    </div>
+                                                    <small class="text-info"><i class="fas fa-hospital-alt mr-1"></i> {{ $item->organization->name ?? 'System' }}</small>
                                                 </td>
-                                                <td>
-                                                    {{ $item->organization->name ?? 'None' }}
+                                                <td class="text-center">
+                                                    @if($item->organization_verify === 'verified' || $item->organization_verify === 'accepted')
+                                                        <span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i> Verified</span>
+                                                    @elseif($item->organization_verify === 'pending')
+                                                        <div class="d-flex flex-column align-items-center gap-1">
+                                                            <span class="badge badge-warning px-2 py-1 mb-1"><i class="fas fa-clock mr-1"></i> Pending</span>
+                                                            @if(auth()->user()->isOrgAdmin() || auth()->user()->isSystemAdmin())
+                                                                <div class="btn-group btn-group-xs">
+                                                                    <button wire:click="approve({{ $item->id }})" class="btn btn-xs btn-success" title="Approve"><i class="fas fa-check"></i></button>
+                                                                    <button wire:click="decline({{ $item->id }})" class="btn btn-xs btn-danger" title="Decline"><i class="fas fa-times"></i></button>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    @else
+                                                        <span class="badge badge-danger px-2 py-1"><i class="fas fa-times-circle mr-1"></i> {{ ucfirst($item->organization_verify ?? 'Unverified') }}</span>
+                                                        @if(($item->organization_verify === 'declined') && (auth()->user()->isOrgAdmin() || auth()->user()->isSystemAdmin()))
+                                                             <button wire:click="approve({{ $item->id }})" class="btn btn-xs btn-link text-success p-0 ml-1" title="Re-approve"><i class="fas fa-redo"></i></button>
+                                                        @endif
+                                                    @endif
                                                 </td>
-                                                <td>
-                                                    <span class="badge bg-{{ $item->is_active == 1 ? 'success' : 'danger' }}">
+                                                <td class="text-center">
+                                                    <span class="badge badge-{{ $item->is_active == 1 ? 'success' : 'danger' }} px-2 py-1">
                                                         {{ $item->is_active == 1 ? 'Active' : 'Inactive' }}
                                                     </span>
                                                 </td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-dark btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                            Options
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a class="dropdown-item" href="{{ route('users.edit', [$item->role->name, $item->id]) }}">Edit</a>
-                                                            <a class="dropdown-item" wire:click.prevent="showRoleModal({{ $item->id }})" href="#">Change Role</a>
+                                                <td class="text-center">
+                                                    <div class="btn-group shadow-sm rounded">
+                                                        <a href="{{ route('users.edit', [$item->role->name, $item->id]) }}" class="btn btn-white btn-sm px-3" title="Edit">
+                                                            <i class="fas fa-edit text-info"></i>
+                                                        </a>
+                                                        <button type="button" class="btn btn-white btn-sm px-3 dropdown-toggle dropdown-icon" data-toggle="dropdown"></button>
+                                                        <div class="dropdown-menu dropdown-menu-right shadow border-0">
+                                                            <a class="dropdown-item" wire:click.prevent="showRoleModal({{ $item->id }})" href="#">
+                                                                <i class="fas fa-user-tag mr-2 text-muted"></i> Change Role
+                                                            </a>
                                                             <a class="dropdown-item" wire:click.prevent="toggleActive({{ $item->id }})" href="#">
+                                                                <i class="fas fa-power-off mr-2 {{ $item->is_active == 1 ? 'text-danger' : 'text-success' }}"></i> 
                                                                 {{ $item->is_active == 1 ? 'Deactivate' : 'Activate' }}
                                                             </a>
                                                             <a class="dropdown-item" wire:click.prevent="resetPassword({{ $item->id }})" href="#">
-                                                                Reset Password
+                                                                <i class="fas fa-key mr-2 text-warning"></i> Reset Password
                                                             </a>
-                                                            @if(Auth::user()->role->name === 'system-admin')
+                                                            @if(auth()->user()->isSystemAdmin())
                                                                 <div class="dropdown-divider"></div>
-                                                                <a class="dropdown-item text-danger" href="#" wire:click.prevent="delete({{ $item->id }})" wire:confirm.prompt="Are you sure you want to delete this user? \n\nType DELETE to Confirm|DELETE">
-                                                                    Delete
+                                                                <a class="dropdown-item text-danger" href="#" wire:click.prevent="delete({{ $item->id }})" wire:confirm="Are you sure you want to delete this user?">
+                                                                    <i class="fas fa-trash-alt mr-2"></i> Delete User
                                                                 </a>
                                                             @endif
                                                         </div>
@@ -169,14 +203,17 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="6" class="text-center p-4">No users found matching your criteria.</td>
+                                                <td colspan="6" class="text-center py-5">
+                                                    <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+                                                    <h5 class="text-muted">No users found.</h5>
+                                                </td>
                                             </tr>
                                         @endforelse
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <div class="card-footer clearfix">
+                        <div class="card-footer bg-white border-top shadow-none py-3">
                             {{ $users->links() }}
                         </div>
                     </div>
@@ -207,4 +244,44 @@
             </div>
         @endif
     </x-modal>
+
+    <x-modal status="{{ $inviteModal }}" title="Invite New User">
+        <div class="p-3">
+            <p class="text-muted">Send an email invitation for a user to register under <strong>{{ auth()->user()->organization->name ?? 'System' }}</strong>.</p>
+            <form wire:submit.prevent="sendInvite">
+                <div class="form-group">
+                    <label for="inviteEmail">Email Address</label>
+                    <input type="email" wire:model="inviteEmail" class="form-control" id="inviteEmail" placeholder="user@example.com">
+                    <x-input-error for="inviteEmail" />
+                </div>
+                <div class="form-group">
+                    <label for="inviteRoleId">Assign Role</label>
+                    <select wire:model="inviteRoleId" class="form-control" id="inviteRoleId">
+                        <option value="">Select Role</option>
+                        @foreach($roles as $role)
+                            <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
+                        @endforeach
+                    </select>
+                    <x-input-error for="inviteRoleId" />
+                </div>
+                <div class="mt-4 d-flex justify-content-between">
+                    <button type="button" wire:click="cancel" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-navy">Send Invitation <x-spinner for="sendInvite" /></button>
+                </div>
+            </form>
+        </div>
+    </x-modal>
+
+    <style>
+        .text-navy { color: #001f3f !important; }
+        .bg-navy { background-color: #001f3f !important; color: #fff !important; }
+        .btn-navy { background-color: #001f3f; color: #fff; border: none; transition: all 0.3s; }
+        .btn-navy:hover { background-color: #002d5c; transform: translateY(-1px); color: #fff; }
+        .btn-outline-navy { border: 2px solid #001f3f; color: #001f3f; background: transparent; transition: all 0.3s; }
+        .btn-outline-navy:hover { background: #001f3f; color: #fff; }
+        .bg-soft-navy { background-color: #eef2f7; }
+        .badge-pill { border-radius: 50rem; }
+        .btn-white { background: #fff; border: 1px solid #dee2e6; }
+        .btn-white:hover { background: #f8f9fa; }
+    </style>
 </div>

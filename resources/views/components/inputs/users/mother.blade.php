@@ -83,6 +83,35 @@
 </div>
 
 <div class="form-group">
+    <label for="district_id">District</label>
+    <select wire:model.live="district_id" class="form-control">
+        <option value="">Select District</option>
+        @foreach ($districts as $district)
+            <option value="{{ $district->id }}">{{ $district->name }}</option>
+        @endforeach
+    </select>
+    <x-input-error for="district_id" />
+</div>
+
+<div class="form-group">
+    <label for="area_id">Area</label>
+    <div class="input-group">
+        <select wire:model="area_id" class="form-control" @disabled(!$district_id)>
+            <option value="">Select Area</option>
+            @foreach ($areas as $area)
+                <option value="{{ $area->id }}">{{ $area->name }}</option>
+            @endforeach
+        </select>
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" wire:click="addArea" @disabled(!$district_id) title="Add New Area">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+    <x-input-error for="area_id" />
+</div>
+
+<div class="form-group">
     <label for="traditional Authority">Traditional Authority</label>
     <input type="text" class="form-control" wire:model="traditional_authority">
     <x-input-error for="traditional_authority" />

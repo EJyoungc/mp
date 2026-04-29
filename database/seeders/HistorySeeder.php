@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\History;
 use Illuminate\Database\Seeder;
 
 class HistorySeeder extends Seeder
@@ -12,6 +12,13 @@ class HistorySeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        History::updateOrCreate(
+            ['mother_id' => 7], // Mary Mother
+            [
+                'infant_number' => 1,
+                'last_menstrual_cycle' => now()->subWeeks(10)->format('Y-m-d'),
+                'organization_id' => 1, // Clinic
+            ]
+        );
     }
 }

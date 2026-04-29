@@ -2,20 +2,15 @@
 
 namespace App\Exports;
 
-use App\Models\User;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-
-use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Events\AfterSheet;
 
-class MothersSampleExport implements FromArray, WithHeadings, WithEvents
+class MothersSampleExport implements FromArray, WithEvents, WithHeadings
 {
-  /**
+    /**
      * Define the Excel header row.
-     *
-     * @return array
      */
     public function headings(): array
     {
@@ -30,6 +25,8 @@ class MothersSampleExport implements FromArray, WithHeadings, WithEvents
             'Level of Education',
             'Occupation',
             'Address',
+            'District',
+            'Area',
             'Traditional Authority',
             'Next of Kin',
             'Next of Kin Mobile',
@@ -50,17 +47,15 @@ class MothersSampleExport implements FromArray, WithHeadings, WithEvents
 
     /**
      * Return the array of sample data.
-     *
-     * @return array
      */
     public function array(): array
     {
         return [
             // Row 1: Sample Data
             [
-                'Jane Doe','YhV3P@example.com', '1990-05-15','1990-05-15','+265991234567', 'Married', 'Christianity', "Bachelor's Degree",
-                'Software Engineer', 'Lilongwe, Malawi', 'TA Mwambo', 'John Doe', '+265998765432', '168',
-                'No', 'No', '2', '1', 'Yes', 'No', 'No', 'No', 'No','No', 'Regular'
+                'Jane Doe', 'YhV3P@example.com', '1990-05-15', '1990-05-15', '+265991234567', 'Married', 'Christianity', "Bachelor's Degree",
+                'Software Engineer', 'Lilongwe, Malawi', 'Lilongwe', 'Area 1', 'TA Mwambo', 'John Doe', '+265998765432', '168',
+                'No', 'No', '2', '1', 'Yes', 'No', 'No', 'No', 'No', 'No', 'Regular',
             ],
             // Row 2: Comments (Expected Value Descriptions)
             [
@@ -74,6 +69,8 @@ class MothersSampleExport implements FromArray, WithHeadings, WithEvents
                 'e.g., Primary, Secondary, Diploma, Bachelor, etc.',
                 'Job Title',
                 'City, District, etc.',
+                'e.g., Lilongwe, Blantyre, etc.',
+                'e.g., Area 1, Limbe, etc.',
                 'Traditional Authority name',
                 'Relative\'s full name',
                 'Relative\'s phone number',
@@ -96,11 +93,13 @@ class MothersSampleExport implements FromArray, WithHeadings, WithEvents
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
-                // Auto-size columns from A to X (or adjust range as needed)
-                foreach (range('A', 'X') as $columnID) {
+            AfterSheet::class => function (AfterSheet $event) {
+                // Auto-size columns from A to Z (or adjust range as needed)
+                foreach (range('A', 'Z') as $columnID) {
                     $event->sheet->getDelegate()->getColumnDimension($columnID)->setAutoSize(true);
                 }
+                // Also AA column if needed
+                $event->sheet->getDelegate()->getColumnDimension('AA')->setAutoSize(true);
             },
         ];
     }

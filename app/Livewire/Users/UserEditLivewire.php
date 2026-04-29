@@ -3,6 +3,8 @@
 namespace App\Livewire\Users;
 
 use App\Helper\StandardData;
+use App\Models\Area;
+use App\Models\District;
 use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
@@ -12,36 +14,86 @@ use Livewire\Component;
 
 class UserEditLivewire extends Component
 {
-
     use LivewireAlert;
+
     public $modal = false;
 
     public $user;
+
     public $role;
+
     public $role_id;
-    public $name, $email, $password, $phone, $date_of_birth, $marital_status, $religion, $level_of_education, $occupation, $age, $next_of_kin, $next_of_kin_mobile, $address, $traditional_authority, $last_normal_menstrual_period_date;
+
+    public $name;
+
+    public $email;
+
+    public $password;
+
+    public $phone;
+
+    public $date_of_birth;
+
+    public $marital_status;
+
+    public $religion;
+
+    public $level_of_education;
+
+    public $occupation;
+
+    public $age;
+
+    public $next_of_kin;
+
+    public $next_of_kin_mobile;
+
+    public $address;
+
+    public $district_id;
+
+    public $area_id;
+
+    public $traditional_authority;
+
+    public $last_normal_menstrual_period_date;
+
+    public $areaModal = false;
+
+    public $new_area_name;
+
     public $height;
+
     public $legOrSpine;
+
     public $deformity;
+
     public $deliveries;
+
     public $abortions;
+
     public $stillBirths;
 
     public $cSection;
+
     public $vacum;
+
     public $multiple;
+
     public $tuberculosis;
+
     public $asthma;
+
     public $menstrualCycle;
 
-
-    public function create(){
+    public function create()
+    {
         $this->modal = true;
 
     }
 
-
-    public function mount($role,$user_id){
+    public function mount($role, $user_id)
+    {
         //
         $role = Role::where('name', $role)->first();
         $this->role_id = $role->id;
@@ -58,6 +110,8 @@ class UserEditLivewire extends Component
         $this->next_of_kin = $this->user->next_of_kin;
         $this->next_of_kin_mobile = $this->user->next_of_kin_mobile;
         $this->address = $this->user->address;
+        $this->district_id = $this->user->district_id;
+        $this->area_id = $this->user->area_id;
         $this->traditional_authority = $this->user->traditional_authority;
         // $this->last_normal_menstrual_period_date = $this->user->last_normal_menstrual_period_date;
         $this->height = $this->user->height;
@@ -74,15 +128,46 @@ class UserEditLivewire extends Component
         $this->asthma = $this->user->asthma;
         $this->menstrualCycle = $this->user->menstrual_cycle;
 
-
-
     }
+
     public function UpdatedDateOfBirth()
     {
         $this->age = Carbon::parse($this->date_of_birth)->age;
     }
 
-    public function store(){
+    public function updatedDistrictId()
+    {
+        $this->area_id = null;
+    }
+
+    public function addArea()
+    {
+        $this->validate([
+            'district_id' => 'required|exists:districts,id',
+        ]);
+        $this->new_area_name = '';
+        $this->areaModal = true;
+    }
+
+    public function storeArea()
+    {
+        $this->validate([
+            'district_id' => 'required|exists:districts,id',
+            'new_area_name' => 'required|string|max:255',
+        ]);
+
+        $area = Area::create([
+            'district_id' => $this->district_id,
+            'name' => $this->new_area_name,
+        ]);
+
+        $this->area_id = $area->id;
+        $this->areaModal = false;
+        $this->alert('success', 'New area added successfully');
+    }
+
+    public function store()
+    {
 
         switch ($this->role) {
             case 'admin':
@@ -94,7 +179,7 @@ class UserEditLivewire extends Component
                 break;
             case 'mother':
 
-             $this->validate([
+                $this->validate([
                     'name' => 'required | string | max:255',
                     // 'email' => 'required | string | email | max:255 | unique:users',
                     'date_of_birth' => 'required | date',
@@ -106,7 +191,9 @@ class UserEditLivewire extends Component
                     'next_of_kin' => 'required',
                     'next_of_kin_mobile' => 'required',
                     'address' => 'required',
-                    'phone'=>'required',
+                    'district_id' => 'required|exists:districts,id',
+                    'area_id' => 'required|exists:areas,id',
+                    'phone' => 'required',
                     'traditional_authority' => 'required | string| max:255',
                     // 'last_normal_menstrual_period_date' => 'required | date',
                     'height' => 'required|numeric|min:0',
@@ -124,7 +211,7 @@ class UserEditLivewire extends Component
 
                 ]);
 
-              $this->user->update([
+                $this->user->update([
                     'role_id' => $this->role_id,
                     'name' => $this->name,
                     // 'email' => $this->generateUniqueEmail($this->name),
@@ -138,7 +225,9 @@ class UserEditLivewire extends Component
                     'next_of_kin' => $this->next_of_kin,
                     'next_of_kin_mobile' => $this->next_of_kin_mobile,
                     'address' => $this->address,
-                    'phone'=>$this->phone,
+                    'district_id' => $this->district_id,
+                    'area_id' => $this->area_id,
+                    'phone' => $this->phone,
                     'traditional_authority' => $this->traditional_authority,
                     // 'last_normal_menstrual_period_date' => $this->last_normal_menstrual_period_date,
                     'height' => $this->height,
@@ -156,23 +245,28 @@ class UserEditLivewire extends Component
                 ]);
                 // dd($this->stillBirths,$this->cSection,$this->vacum,$this->user);
 
-
                 $this->alert('success', 'Mother Updated Successfully');
                 sleep(5);
+
                 return redirect(route('users'));
                 break;
         }
 
     }
 
-    public function cancel(){
+    public function cancel()
+    {
         $this->reset([
             'modal',
-
+            'areaModal',
         ]);
     }
+
     public function render()
     {
-        return view('livewire.users.user-edit-livewire');
+        return view('livewire.users.user-edit-livewire', [
+            'districts' => District::all(),
+            'areas' => $this->district_id ? Area::where('district_id', $this->district_id)->get() : [],
+        ]);
     }
 }

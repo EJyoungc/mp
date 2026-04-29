@@ -12,11 +12,12 @@ class SystemAdminAuth
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && Auth::user()->role->name == 'admin system') {
+        // dd(Auth::user()->role->name);
+        if (Auth::check() && Auth::user()->role->name == 'system-admin') {
             return $next($request);
         } else {
             return redirect()->route('access-denied');
