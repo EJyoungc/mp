@@ -29,8 +29,8 @@
                     <div class="card-body px-4 pb-4">
                         <form wire:submit.prevent="store">
                             <div class="alert bg-soft-navy text-navy border mb-4">
-                                <i class="fas fa-info-circle mr-2"></i> 
-                                You are registering a new <strong>{{ ucfirst($role) }}</strong>. 
+                                <i class="fas fa-info-circle mr-2"></i>
+                                You are registering a new <strong>{{ ucfirst($role) }}</strong>.
                                 @if($role !== 'mother')
                                     An automated secure password will be generated and emailed to the user.
                                 @endif
@@ -49,16 +49,16 @@
                             @endif
 
                             @if ($role == 'mother')
-                                <x-inputs.users.mother/>
+                                <x-inputs.users.mother :districts="$districts" :areas="$areas" :district_id="$district_id"/>
                             @endif
-                          
+
                             <div class="mt-4 border-top pt-4 text-right">
                                 <a href="{{ route('users') }}" class="btn btn-light rounded-pill px-4 mr-2">Cancel</a>
                                 <button type="submit" class="btn btn-navy rounded-pill px-5 shadow-sm">
                                     <i class="fas fa-save mr-1"></i> Register {{ ucfirst($role) }} <x-spinner for="store" />
                                 </button>
                             </div>
-                        </form>                    
+                        </form>
                     </div>
                 </div>
             </div>

@@ -79,7 +79,7 @@
                                         </td>
                                         <td class="py-3 border-top-0 text-center">
                                             <div class="btn-group shadow-sm rounded">
-                                                <a href="{{ route('mothers.show', SD::encrypt($mother->id)) }}" class="btn btn-white btn-sm px-3" title="View Profile">
+                                                <a href="{{ route('mothers.show', \App\Helper\StandardData::encrypt($mother->id)) }}" class="btn btn-white btn-sm px-3" title="View Profile">
                                                     <i class="fas fa-eye text-primary"></i>
                                                 </a>
                                                 <button wire:click="edit({{ $mother->id }})" class="btn btn-white btn-sm px-3" title="Edit">

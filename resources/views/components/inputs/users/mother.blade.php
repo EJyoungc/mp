@@ -1,3 +1,6 @@
+
+@props(['districts', 'areas', 'district_id'])
+
 @if ($errors->any())
     <div class="alert alert-danger">
         <ul>
@@ -38,7 +41,7 @@
     <label for="">Marial Status</label>
     <select name="" id="" class="form-control" wire:model="marital_status">
         <option value="">Select</option>
-        @foreach (SD::getMaritalStatuses() as $key => $value)
+        @foreach (\App\Helper\StandardData::getMaritalStatuses() as $key => $value)
             <option value="{{ $value }}">{{ $value }}</option>
         @endforeach
     </select>
@@ -50,7 +53,7 @@
     <label for="">Religion</label>
     <select name="" id="" class="form-control" wire:model="religion">
         <option value="">Select</option>
-        @foreach (SD::getReligions() as $key => $value)
+        @foreach (\App\Helper\StandardData::getReligions() as $key => $value)
             <option value="{{ $value }}">{{ $value }}</option>
         @endforeach
     </select>
@@ -61,7 +64,7 @@
     <label for="">Level of Education</label>
     <select name="" id="" class="form-control" wire:model="level_of_education">
         <option value="">Select</option>
-        @foreach (SD::getEducationLevels() as $key => $value)
+        @foreach (\App\Helper\StandardData::getEducationLevels() as $key => $value)
             <option value="{{ $value }}">{{ $value }}</option>
         @endforeach
     </select>
@@ -86,9 +89,11 @@
     <label for="district_id">District</label>
     <select wire:model.live="district_id" class="form-control">
         <option value="">Select District</option>
-        @foreach ($districts as $district)
+        @forelse ($districts as $district)
             <option value="{{ $district->id }}">{{ $district->name }}</option>
-        @endforeach
+            @empty
+            <option value="">No districts available</option>
+        @endforelse
     </select>
     <x-input-error for="district_id" />
 </div>

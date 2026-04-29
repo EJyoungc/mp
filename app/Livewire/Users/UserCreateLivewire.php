@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Users;
 
-use App\Helper\StandardData;
 use App\Models\Area;
 use App\Models\District;
 use App\Models\Role;
@@ -100,23 +99,22 @@ class UserCreateLivewire extends Component
         return $email;
     }
 
-    public function mount($role, $user_id = null)
+    public function mount($role)
     {
         if (Auth::user()->isPharmacyAdmin() && $role !== 'practitioner') {
             return redirect()->route('access-denied');
         }
 
         $this->role = $role;
-        $role = Role::where('name', $role)->first();
-        $this->role_id = $role->id;
-        if (! empty($user_id)) {
-            $this->User::findOrFail($user_id);
-        }
+        $role_model = Role::where('name', $role)->firstOrFail();
+        $this->role_id = $role_model->id;
     }
 
-    public function UpdatedDateOfBirth()
+    public function updatedDateOfBirth()
     {
-        $this->age = Carbon::parse($this->date_of_birth)->age;
+        if ($this->date_of_birth) {
+            $this->age = Carbon::parse($this->date_of_birth)->age;
+        }
     }
 
     public function updatedDistrictId()

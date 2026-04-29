@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Users;
 
-use App\Helper\StandardData;
 use App\Models\Area;
 use App\Models\District;
 use App\Models\Role;
@@ -130,9 +129,11 @@ class UserEditLivewire extends Component
 
     }
 
-    public function UpdatedDateOfBirth()
+    public function updatedDateOfBirth()
     {
-        $this->age = Carbon::parse($this->date_of_birth)->age;
+        if ($this->date_of_birth) {
+            $this->age = Carbon::parse($this->date_of_birth)->age;
+        }
     }
 
     public function updatedDistrictId()
@@ -264,6 +265,7 @@ class UserEditLivewire extends Component
 
     public function render()
     {
+
         return view('livewire.users.user-edit-livewire', [
             'districts' => District::all(),
             'areas' => $this->district_id ? Area::where('district_id', $this->district_id)->get() : [],

@@ -189,7 +189,7 @@
                                                         </a>
                                                         <div class="dropdown-menu" aria-labelledby="triggerId">
                                                             <a class="dropdown-item"
-                                                                href="{{ route('mothers.show', SD::encrypt($item->id)) }}">View</a>
+                                                                href="{{ route('mothers.show', \App\Helper\StandardData::encrypt($item->id)) }}">View</a>
                                                             <a class="dropdown-item " href="#">Edit</a>
 
                                                         </div>

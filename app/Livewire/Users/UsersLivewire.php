@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Users;
 
-use App\Helper\StandardData;
 use App\Mail\InvitationMail;
 use App\Mail\Reset;
+use App\Models\District;
 use App\Models\History;
 use App\Models\Invitation;
 use App\Models\MessageHistory;
@@ -304,6 +304,7 @@ class UsersLivewire extends Component
             'mothersCount' => $mothersCount,
             'practitionersCount' => $practitionersCount,
             'allUsersCount' => $allUsersCount,
+            'districts' => District::all(),
         ]);
     }
 }

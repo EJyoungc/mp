@@ -29,7 +29,7 @@
                     <div class="card-body px-4 pb-4">
                         <form wire:submit.prevent="store">
                             <div class="alert bg-soft-navy text-navy border mb-4 small">
-                                <i class="fas fa-shield-alt mr-2"></i> 
+                                <i class="fas fa-shield-alt mr-2"></i>
                                 You are modifying the profile for a <strong>{{ ucfirst($role) }}</strong> user. Changes are effective immediately.
                             </div>
 
@@ -46,16 +46,16 @@
                             @endif
 
                             @if ($role == 'mother')
-                                <x-inputs.users.mother/>
+                                <x-inputs.users.mother :districts="$districts" :areas="$areas" :district_id="$district_id"/>
                             @endif
-                          
+
                             <div class="mt-4 border-top pt-4 text-right">
                                 <a href="{{ route('users') }}" class="btn btn-light rounded-pill px-4 mr-2">Cancel</a>
                                 <button type="submit" class="btn btn-navy rounded-pill px-5 shadow-sm">
                                     <i class="fas fa-check-circle mr-1"></i> Update {{ ucfirst($role) }} <x-spinner for="store" />
                                 </button>
                             </div>
-                        </form>                    
+                        </form>
                     </div>
                 </div>
             </div>
