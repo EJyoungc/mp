@@ -72,15 +72,17 @@ class SendAdMessages extends Command
                     continue;
                 }
 
+                $fullMessage = $ad->ad_message."\n- Available at: ".$organization->name;
+
                 $adHistory = AdHistory::create([
                     'mother_id' => $mother->id,
                     'pharmacy_ad_id' => $ad->id,
                     'organization_id' => $organization->id,
-                    'message' => $ad->ad_message,
+                    'message' => $fullMessage,
                     'status' => 'pending',
                 ]);
 
-                SendSmsAdJob::dispatch($adHistory, $mother->phone, $ad->ad_message);
+                SendSmsAdJob::dispatch($adHistory, $mother->phone, $fullMessage);
 
                 $ad->increment('total_sent');
             }
