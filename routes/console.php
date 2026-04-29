@@ -18,8 +18,8 @@ Schedule::command('app:check-messages')
     ->appendOutputTo(storage_path('logs/sms-cron.log'));
 
 Schedule::command('app:send-pharmacy-ads')
-    // ->dailyAt('10:00')
-    ->everyMinute()
+    ->dailyAt('10:00')
+    // ->everyMinute()
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/pharmacy-ads-cron.log'));
 
