@@ -15,7 +15,8 @@ All notable changes to the MaaSMS project will be documented in this file.
 ### Changed
 - **Refined Area-Based Targeting**:
   - Replaced coordinate proximity with strict geographic `Area` matching for pharmacy advertisements.
-  - Updated `app:send-pharmacy-ads` and `app:send-pharmacy-ads-broadcast` to operate without coordinate data.
+  - Migrated advertisement delivery logging from the generic `MessageHistory` table to the dedicated `AdHistory` table.
+  - Updated `app:send-pharmacy-ads` and `app:send-pharmacy-ads-broadcast` to operate without coordinate data and log to `AdHistory`.
 - **Registration Enhancements**:
   - Added **District** and **Area** selection to the "Create a New Organization" workflow.
   - Implemented client-side dynamic filtering for Areas during organization creation.
@@ -23,8 +24,11 @@ All notable changes to the MaaSMS project will be documented in this file.
 - **Dashboard UI Update**:
   - Replaced "Reached Locations" (coordinates) with "Reached Areas" in the monetization analytics.
   - Removed radius inputs and coordinate display from advertisement management modals.
+  - Added Edit functionality for Pharmacy Advertisements with dynamic modal titles and loading states.
 
 ### Fixed
+- **Ad Resend Logic**: Updated `AdHistoriesLivewire` and `SendSmsAdJob` to use `sendSmsGeneric`, ensuring compatibility with the `AdHistory` model.
+- **Ad Dispatch Stability**: Added null checks for organizational data and fixed SQL integrity constraints (missing `tip_id`) during ad creation.
 - **Registration Validation**: Resolved an "invalid organization id" error when creating a new organization during signup by making the join-related `organization_id` nullable.
 - **Data Consistency**: Fixed a typo in the `MothersImport` class affecting vacuum delivery data (`vacuum` -> `vacum`).
 
