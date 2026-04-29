@@ -41,6 +41,8 @@ class SendAdMessages extends Command
             return;
         }
 
+        $sentToMothersInThisRun = [];
+
         foreach ($activeAds as $ad) {
             $organization = $ad->organization;
 
@@ -62,7 +64,12 @@ class SendAdMessages extends Command
             }
 
             foreach ($mothers as $mother) {
-                // Check if we already sent this specific ad to this mother recently (e.g., today)
+                // Skip if we already sent an ad to this mother in THIS run of the command
+                if (isset($sentToMothersInThisRun[$mother->id])) {
+                    continue;
+                }
+
+                // Check if we already sent THIS specific ad to this mother today
                 $alreadySent = AdHistory::where('mother_id', $mother->id)
                     ->where('pharmacy_ad_id', $ad->id)
                     ->whereDate('created_at', now()->today())
@@ -85,6 +92,7 @@ class SendAdMessages extends Command
                 SendSmsAdJob::dispatch($adHistory, $mother->phone, $fullMessage);
 
                 $ad->increment('total_sent');
+                $sentToMothersInThisRun[$mother->id] = true;
             }
 
             $this->info("Dispatched ads for Ad ID {$ad->id} to {$mothers->count()} mothers in Area: ".(optional($organization->area)->name ?? $organization->area_id));
