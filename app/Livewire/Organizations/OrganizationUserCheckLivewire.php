@@ -35,6 +35,8 @@ class OrganizationUserCheckLivewire extends Component
 
     public $description;
 
+    public $is_pharmacy = false;
+
     public $liststatus = false;
 
     public $user;
@@ -98,6 +100,8 @@ class OrganizationUserCheckLivewire extends Component
             'district_id' => $this->district_id,
             'area_id' => $this->area_id,
             'description' => $this->description,
+            'is_pharmacy' => $this->is_pharmacy,
+            'owner_id' => auth()->id(),
         ]);
 
         $user = User::find(Auth::user()->id);
@@ -174,6 +178,7 @@ class OrganizationUserCheckLivewire extends Component
             $this->district_id = $this->organization->district_id;
             $this->area_id = $this->organization->area_id;
             $this->description = $this->organization->description;
+            $this->is_pharmacy = $this->organization->is_pharmacy;
             $this->modal = true;
         }
     }
@@ -192,6 +197,7 @@ class OrganizationUserCheckLivewire extends Component
             'district_id',
             'area_id',
             'description',
+            'is_pharmacy',
 
         ]);
     }

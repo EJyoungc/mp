@@ -176,8 +176,8 @@ class UsersLivewire extends Component
 
         // Check if role is allowed for this user
         $role = Role::findOrFail($this->inviteRoleId);
-        if ($loggedInUser->isPharmacyAdmin() && $role->name !== 'practitioner') {
-            $this->alert('error', 'Pharmacy admins can only invite practitioners.');
+        if ($loggedInUser->isPharmacyAdmin() && !in_array($role->name, ['practitioner', 'admin'])) {
+            $this->alert('error', 'Pharmacy admins can only invite practitioners or other admins.');
 
             return;
         }
@@ -279,7 +279,7 @@ class UsersLivewire extends Component
         // Roles for adding users and filtering
         $rolesQuery = Role::query()->select('id', 'name')->distinct();
         if ($loggedInUser->isPharmacyAdmin()) {
-            $rolesQuery->where('name', 'practitioner');
+            $rolesQuery->whereIn('name', ['practitioner', 'admin']);
         } elseif ($loggedInUser->role->name == 'admin') {
             $rolesQuery->where('name', '!=', 'system-admin');
         } elseif ($loggedInUser->isDoctor()) {

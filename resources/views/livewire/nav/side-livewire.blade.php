@@ -189,6 +189,13 @@
                             </p>
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('messages.histories') }}" class="nav-link">
+                            <i class="nav-icon fas fa-history"></i>
+                            <p>Message Histories</p>
+                        </a>
+                    </li>
                     @endif
 
                     @endif
@@ -250,6 +257,13 @@
                         </a>
                     </li>
 
+                    <li class="nav-item">
+                        <a href="{{ route('messages.histories') }}" class="nav-link">
+                            <i class="nav-icon fas fa-history"></i>
+                            <p>Message Histories</p>
+                        </a>
+                    </li>
+
                     @endif
                     {{-- practitioner --}}
                     @if (Auth::user()->role->name == 'practitioner')
@@ -271,6 +285,40 @@
                         <a href="{{ route('users') }}" class="nav-link ">
                             <i class="nav-icon fas fa-users"></i>
                             <p>Users</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-copy"></i>
+                            <p>
+                                Trimesters
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            @foreach ($trimesters as $item)
+                                <li class="nav-item">
+                                    <a href="{{ route('trimester.weeks', $item->id) }}" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Trimester {{ $item->trimester }}</p>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('days.range') }}" class="nav-link">
+                            <i class="nav-icon fas fa-th"></i>
+                            <p>Days Time Range</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('messages.histories') }}" class="nav-link">
+                            <i class="nav-icon fas fa-history"></i>
+                            <p>Message Histories</p>
                         </a>
                     </li>
 

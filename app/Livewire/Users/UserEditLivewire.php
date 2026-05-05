@@ -93,10 +93,25 @@ class UserEditLivewire extends Component
 
     public function mount($role, $user_id)
     {
-        //
-        $role = Role::where('name', $role)->first();
-        $this->role_id = $role->id;
+        $loggedInUser = auth()->user();
         $this->user = User::findOrFail($user_id);
+
+        // Authorization check: Must be system admin or from the same organization
+        if (!$loggedInUser->isSystemAdmin()) {
+            if ($loggedInUser->organization_id !== $this->user->organization_id) {
+                return redirect()->route('access-denied');
+            }
+            
+            // Pharmacy Admin restriction check
+            if ($loggedInUser->isPharmacyAdmin() && !in_array($role, ['practitioner', 'admin'])) {
+                return redirect()->route('access-denied');
+            }
+        }
+
+        $role_model = Role::where('name', $role)->first();
+        $this->role_id = $role_model->id;
+        $this->role = $role;
+        
         $this->name = $this->user->name;
         $this->email = $this->user->email;
         $this->phone = $this->user->phone;

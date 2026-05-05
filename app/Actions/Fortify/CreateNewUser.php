@@ -71,10 +71,12 @@ class CreateNewUser implements CreatesNewUsers
                     'area_id' => $input['org_area_id'],
                 ]);
 
+                $adminRole = \App\Models\Role::where('name', 'admin')->first();
+
                 $user->update([
                     'organization_id' => $organization->id,
                     'organization_verify' => 'approved', // Creator is automatically approved
-                    'role_id' => 2, // Creator becomes Admin of their organization
+                    'role_id' => $adminRole ? $adminRole->id : 2, // Creator becomes Admin of their organization
                 ]);
             } else {
                 $user->update([

@@ -116,6 +116,6 @@ class MothersImport implements ToModel, WithHeadingRow, WithStartRow
      */
     public function startRow(): int
     {
-        return 5;
+        return 4;
     }
 }

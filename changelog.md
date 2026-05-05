@@ -2,6 +2,15 @@
 
 All notable changes to the MaaSMS project will be documented in this file.
 
+## [1.5.1] - 2026-05-04
+
+### Fixed
+- **Excel Processing**: Resolved a "Class 'ZipArchive' not found" error during bulk import by verifying server-side PHP extension configuration.
+- **Bulk Import Row Logic**: Adjusted Excel preview and import logic to correctly skip template rows. The system now starts reading data from **Row 4**, aligning with the "Mothers" template (Headings, Sample Data, and Descriptions/Comments).
+
+### Added
+- **Import Validation Feedback**: Added a Livewire warning alert if no data is found in the uploaded Excel file starting from the expected data row (Row 4).
+
 ## [1.5.0] - 2026-04-29
 
 ### Removed

@@ -101,7 +101,7 @@ class UserCreateLivewire extends Component
 
     public function mount($role)
     {
-        if (Auth::user()->isPharmacyAdmin() && $role !== 'practitioner') {
+        if (Auth::user()->isPharmacyAdmin() && !in_array($role, ['practitioner', 'admin'])) {
             return redirect()->route('access-denied');
         }
 

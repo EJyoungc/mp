@@ -98,6 +98,74 @@
                                 </button>
                             </form>
                             </p>
+
+                            @if(auth()->user()->isOrgAdmin() && auth()->user()->organization)
+                                <hr>
+                                <div class="mt-4">
+                                    <h5 class="text-bold mb-3"><i class="fas fa-hospital-alt mr-2"></i> Organization Details</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="org_name">Organization Name</label>
+                                                <input type="text" wire:model.defer="org_name" class="form-control" placeholder="Enter name">
+                                                @error('org_name') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="org_email">Organization Email</label>
+                                                <input type="email" wire:model.defer="org_email" class="form-control" placeholder="Enter email">
+                                                @error('org_email') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="org_phone">Organization Phone</label>
+                                                <input type="text" wire:model.defer="org_phone" class="form-control" placeholder="Enter phone">
+                                                @error('org_phone') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="org_website">Website URL</label>
+                                                <input type="text" wire:model.defer="org_website" class="form-control" placeholder="https://example.com">
+                                                @error('org_website') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="org_address">Physical Address</label>
+                                        <input type="text" wire:model.defer="org_address" class="form-control" placeholder="Enter physical address">
+                                        @error('org_address') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="org_description">Description / Bio</label>
+                                        <textarea wire:model.defer="org_description" class="form-control" rows="3" placeholder="Briefly describe your organization..."></textarea>
+                                        @error('org_description') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="is_pharmacy_profile" wire:model="is_pharmacy">
+                                            <label class="custom-control-label" for="is_pharmacy_profile">This is a Pharmacy</label>
+                                        </div>
+                                        <small class="text-muted">Uncheck if this is a Medical Institution (Clinic/Hospital).</small>
+                                    </div>
+                                    
+                                    <button wire:click.prevent="update" class="btn btn-navy mt-2">
+                                        <i class="fas fa-save mr-1"></i> Update Organization Details
+                                        <div wire:loading wire:target="update">
+                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        </div>
+                                    </button>
+                                </div>
+                                <style>
+                                    .btn-navy { background-color: #001f3f; color: #fff; }
+                                    .btn-navy:hover { background-color: #002d5c; color: #fff; }
+                                </style>
+                            @endif
                         </div>
                     </div>
                 </div>

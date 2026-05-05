@@ -238,8 +238,12 @@ class DashboardLivewire extends Component
             // Get the first row as header
             $this->previewTitleData = array_slice($sheetData, 0, 1);
 
-            // Remove the first 4 rows (indexes 0-3) so that we start at row 5.
-            $this->previewData = array_slice($sheetData, 4);
+            // Remove the first 3 rows (indexes 0-2) so that we start at row 4.
+            $this->previewData = array_slice($sheetData, 3);
+
+            if (empty($this->previewData)) {
+                $this->alert('warning', 'No data found in the file starting from row 4. Please ensure you have added your data below the template comments.');
+            }
         } else {
             $this->previewData = [];
             $this->previewTitleData = [];

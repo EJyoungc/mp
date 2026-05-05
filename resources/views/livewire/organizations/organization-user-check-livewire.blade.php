@@ -57,6 +57,13 @@
                 <x-input-error for="description" />
             </div>
 
+            <div class="form-group">
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="is_pharmacy_modal" wire:model="is_pharmacy">
+                    <label class="custom-control-label" for="is_pharmacy_modal">This is a Pharmacy</label>
+                </div>
+            </div>
+
             <button type="submit" class="btn btn-dark">Save <x-spinner for="store" /> </button>
         </form>
 
