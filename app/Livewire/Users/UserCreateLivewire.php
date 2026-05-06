@@ -101,7 +101,7 @@ class UserCreateLivewire extends Component
 
     public function mount($role)
     {
-        if (Auth::user()->isPharmacyAdmin() && !in_array($role, ['practitioner', 'admin'])) {
+        if (Auth::user()->isPharmacyAdmin() && ! in_array($role, ['practitioner', 'admin'])) {
             return redirect()->route('access-denied');
         }
 
@@ -152,6 +152,27 @@ class UserCreateLivewire extends Component
     {
 
         switch ($this->role) {
+            case 'system-admin':
+                $this->validate([
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|string|email|max:255|unique:users',
+                    'phone' => 'required|numeric',
+                ]);
+
+                User::create([
+                    'role_id' => $this->role_id,
+                    'name' => $this->name,
+                    'email' => $this->email,
+                    'password' => Hash::make(StandardData::generatePassword()),
+                    'phone' => $this->phone,
+                    'organization_id' => null,
+                    'organization_verify' => 'verified',
+                ]);
+                $this->alert('success', 'System Admin created successfully');
+                sleep(5);
+
+                return redirect(route('users'));
+                break;
             case 'admin':
                 $this->validate([
                     'name' => 'required|string|max:255',

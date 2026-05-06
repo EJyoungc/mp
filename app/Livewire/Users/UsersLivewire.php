@@ -146,9 +146,17 @@ class UsersLivewire extends Component
             'newRoleId' => 'required|exists:roles,id',
         ]);
 
-        $this->selectedUser->update([
+        $role = Role::findOrFail($this->newRoleId);
+
+        $data = [
             'role_id' => $this->newRoleId,
-        ]);
+        ];
+
+        if ($role->name === 'system-admin') {
+            $data['organization_id'] = null;
+        }
+
+        $this->selectedUser->update($data);
 
         $this->roleModal = false;
         $this->alert('success', 'User role updated successfully');
@@ -223,7 +231,9 @@ class UsersLivewire extends Component
         }
 
         // Filtering based on logged-in user role
-        if ($loggedInUser->role->name === 'admin') {
+        if ($loggedInUser->isSystemAdmin()) {
+            // System Admin can see all users, including other System Admins
+        } elseif ($loggedInUser->role->name === 'admin') {
             $usersQuery->whereHas('role', function ($q) {
                 $q->where('name', '!=', 'system-admin');
             });
@@ -273,7 +283,9 @@ class UsersLivewire extends Component
 
         // Roles for adding users and filtering
         $rolesQuery = Role::query()->select('id', 'name')->distinct();
-        if ($loggedInUser->isPharmacyAdmin()) {
+        if ($loggedInUser->isSystemAdmin()) {
+            // System Admin can see/assign all roles
+        } elseif ($loggedInUser->isPharmacyAdmin()) {
             $rolesQuery->whereIn('name', ['practitioner', 'admin']);
         } elseif ($loggedInUser->role->name == 'admin') {
             $rolesQuery->where('name', '!=', 'system-admin');
