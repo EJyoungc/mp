@@ -28,6 +28,21 @@ it('allows system admin to bulk reassign mothers', function () {
     }
 });
 
+it('excludes pharmacies from reassign organization list', function () {
+    $this->seed(\Database\Seeders\RoleSeeder::class);
+    $admin = User::factory()->create(['role_id' => 1]);
+    
+    $clinic = Organization::factory()->create(['is_pharmacy' => false, 'name' => 'Clinic']);
+    $pharmacy = Organization::factory()->create(['is_pharmacy' => true, 'name' => 'Pharmacy']);
+
+    $this->actingAs($admin);
+
+    Livewire::test(MothersManagementLivewire::class)
+        ->assertViewHas('organizations', function ($orgs) use ($clinic, $pharmacy) {
+            return $orgs->contains($clinic) && !$orgs->contains($pharmacy);
+        });
+});
+
 it('can select all mothers', function () {
     $this->seed(\Database\Seeders\RoleSeeder::class);
     $admin = User::factory()->create(['role_id' => 1]);

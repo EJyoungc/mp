@@ -424,7 +424,7 @@ class MothersManagementLivewire extends Component
             'religions' => SD::getReligions(),
             'educationLevels' => SD::getEducationLevels(),
             'maritalStatuses' => SD::getMaritalStatuses(),
-            'organizations' => $user->isSystemAdmin() ? \App\Models\Organization::all() : [],
+            'organizations' => $user->isSystemAdmin() ? \App\Models\Organization::where('is_pharmacy', false)->get() : [],
         ]);
     }
 }

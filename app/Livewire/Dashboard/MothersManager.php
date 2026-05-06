@@ -84,7 +84,7 @@ class MothersManager extends Component
 
         $organizations = [];
         if ($user->isSystemAdmin()) {
-            $organizations = Organization::all();
+            $organizations = Organization::where('is_pharmacy', false)->get();
         } else {
             $mothersQuery->where('organization_id', $user->organization_id);
         }
