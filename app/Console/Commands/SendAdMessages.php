@@ -79,7 +79,7 @@ class SendAdMessages extends Command
                     continue;
                 }
 
-                $fullMessage = "PROMO: {$ad->product_name} - {$ad->ad_message}\n- Available at: {$organization->name}";
+                $fullMessage = "PROMO: {$ad->product_name} {$ad->ad_message}\n- Available at: {$organization->name}";
 
                 $adHistory = AdHistory::create([
                     'mother_id' => $mother->id,
