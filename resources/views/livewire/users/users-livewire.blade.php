@@ -186,7 +186,7 @@
                                                         <button type="button" class="btn btn-white btn-sm px-3 dropdown-toggle dropdown-icon" data-toggle="dropdown"></button>
                                                         <div class="dropdown-menu dropdown-menu-right shadow border-0">
                                                             @if($item->organization_verify === 'pending' && (auth()->user()->isOrgAdmin() || auth()->user()->isSystemAdmin()))
-                                                                <a class="dropdown-item text-success" wire:click.prevent="approve({{ $item->id }})" href="#">
+                                                                <a class="dropdown-item text-success" wire:click.prevent="showVerifyModal({{ $item->id }})" href="#">
                                                                     <i class="fas fa-check-circle mr-2"></i> Verify User
                                                                 </a>
                                                                 <a class="dropdown-item text-warning" wire:click.prevent="decline({{ $item->id }})" href="#">
@@ -254,6 +254,38 @@
                         <button type="submit" class="btn btn-primary">Update Role <x-spinner for="updateRole" /></button>
                     </div>
                 </form>
+            </div>
+        @endif
+    </x-modal>
+
+    <x-modal status="{{ $verifyModal }}" title="Verify User Account">
+        @if($selectedUser)
+            <div class="p-3">
+                <div class="text-center mb-4">
+                    <div class="avatar-circle bg-soft-navy text-navy mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 50%; background: #eef2f7; font-size: 1.5rem; font-weight: bold;">
+                        {{ strtoupper(substr($selectedUser->name, 0, 1)) }}
+                    </div>
+                    <h5 class="font-weight-bold mb-1">{{ $selectedUser->name }}</h5>
+                    <p class="text-muted small mb-0">{{ $selectedUser->email }}</p>
+                    <span class="badge badge-pill badge-info px-3 py-1 mt-2">{{ ucfirst($selectedUser->role->name) }}</span>
+                </div>
+
+                <div class="alert alert-light border mb-4">
+                    <p class="small mb-2"><strong>Organization:</strong> {{ $selectedUser->organization->name ?? 'System' }}</p>
+                    <p class="small mb-0"><strong>Phone:</strong> {{ $selectedUser->phone ?? 'N/A' }}</p>
+                </div>
+
+                <p class="text-center text-muted small px-4">By verifying this user, they will gain full access to their assigned features within the platform.</p>
+
+                <div class="mt-4 d-flex justify-content-between">
+                    <button type="button" wire:click="cancel" class="btn btn-secondary px-4">Cancel</button>
+                    <div class="btn-group">
+                        <button type="button" wire:click="decline({{ $selectedUser->id }})" class="btn btn-outline-danger px-4 mr-2">Decline</button>
+                        <button type="button" wire:click="approve({{ $selectedUser->id }})" class="btn btn-success px-4">
+                            <i class="fas fa-check mr-2"></i> Approve & Activate
+                        </button>
+                    </div>
+                </div>
             </div>
         @endif
     </x-modal>
