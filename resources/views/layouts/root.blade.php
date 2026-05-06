@@ -16,11 +16,11 @@
     <link rel="stylesheet" href="{{ asset('dist/css/adminlte.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/fontawesome-free/css/all.min.css') }}">
     <!-- Scripts -->
-    {{-- @vite(['resources/css/app.css', 
-    'resources/js/app.js', 
+    {{-- @vite(['resources/css/app.css',
+    'resources/js/app.js',
     'public/dist/css/adminlte.min.css',
     'public/plugins/jquery/jquery.min.js' ,
-    'public/plugins/bootstrap/js/bootstrap.bundle.min.js', 
+    'public/plugins/bootstrap/js/bootstrap.bundle.min.js',
     'public/dist/js/adminlte.min.js',
     'public/plugins/fontawesome-free/css/all.min.css'
     ]) --}}
@@ -37,9 +37,9 @@
         <!-- Content Wrapper. Contains page content -->
         <div class="content-wrapper">
             <!-- Content Header (Page header) -->
-           
+
         {{ $slot }}
-           
+
         </div>
 
          <!-- Control Sidebar -->
@@ -56,14 +56,14 @@
         <footer class="main-footer">
             <!-- To the right -->
             <div class="float-right d-none d-sm-inline">
-                Anything you want
+                Dev by <span><a href="https://micromek.net">EJ</a></span>
             </div>
             <!-- Default to the left -->
-            <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">Micromek</a>.</strong> All rights
+            <strong>Copyright &copy; 2014-2021 <a href="https://micromek.net">Micromek</a>.</strong> All rights
             reserved.
         </footer>
 
-        
+
         @livewireScripts
         <script src="{{ asset('plugins/sweetalert2/sweetalert2.min.js') }}"></script>
         <x-livewire-alert::scripts />
@@ -74,7 +74,7 @@
                 var modalbackdrop = document.createElement('div');
                 modalbackdrop.classList.add("modal-backdrop", "fade", "show");
                 document.body.appendChild(modalbackdrop);
-    
+
             });
             Livewire.on('modal-cancel', (data) => {
                 // Handle the event here
@@ -82,16 +82,16 @@
                 if (modalbackdrop) {
                     modalbackdrop.parentNode.removeChild(modalbackdrop);
                 }
-    
+
             });
             // });
         </script>
-        
+
 
         <script src="{{ asset('plugins/jquery/jquery.min.js') }}" ></script>
         <script src="{{ asset('plugins/bootstrap/js/bootstrap.bundle.min.js') }}" ></script>
         <script src="{{ asset('dist/js/adminlte.min.js') }}" ></script>
-        
+
 </body>
 
 </html>
