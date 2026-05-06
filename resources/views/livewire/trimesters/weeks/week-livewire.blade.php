@@ -37,10 +37,69 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <div class="d-flex justify-content-end">
-                        <button wire:click="create" class="btn btn-dark">Add Tips <x-spinner
-                                for="create" /></button>
-                        <x-modal title="Add Tip" status="{{ $modal }}">
+                    <div class="d-flex justify-content-end mb-3">
+                        <button wire:click="createBulk" class="btn btn-outline-dark mr-2 shadow-sm rounded-pill px-4">
+                            <i class="fas fa-layer-group mr-1"></i> Bulk Add Tips <x-spinner for="createBulk" />
+                        </button>
+                        <button wire:click="create" class="btn btn-dark shadow-sm rounded-pill px-4">
+                            <i class="fas fa-plus mr-1"></i> Add Tip <x-spinner for="create" />
+                        </button>
+
+                        <!-- Bulk Modal -->
+                        <x-modal title="Bulk Add Tips (Week {{ $week->week }})" :status="$bulkModal">
+                            <form wire:submit.prevent="storeBulk">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="font-weight-bold">Select Days in Week</label>
+                                        <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                                            <div class="custom-control custom-checkbox mb-2 pb-2 border-bottom">
+                                                <input type="checkbox" class="custom-control-input" id="selectAllDays" wire:model.live="selectAllDays">
+                                                <label class="custom-control-label font-weight-bold" for="selectAllDays">Select All Days</label>
+                                            </div>
+                                            @foreach ($days as $item)
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="bulk-day-{{ $item }}" value="{{ $item }}" wire:model="selectedDays">
+                                                    <label class="custom-control-label" for="bulk-day-{{ $item }}">Day {{ $item }}</label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                        @error('selectedDays') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="font-weight-bold">Select Time Ranges</label>
+                                        <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                                            <div class="custom-control custom-checkbox mb-2 pb-2 border-bottom">
+                                                <input type="checkbox" class="custom-control-input" id="selectAllRanges" wire:model.live="selectAllRanges">
+                                                <label class="custom-control-label font-weight-bold" for="selectAllRanges">Select All Ranges</label>
+                                            </div>
+                                            @foreach ($day_ranges as $item)
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="bulk-range-{{ $item->id }}" value="{{ $item->id }}" wire:model="selectedRanges">
+                                                    <label class="custom-control-label" for="bulk-range-{{ $item->id }}">{{ $item->name }}</label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                        @error('selectedRanges') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+
+                                <div class="form-group mt-3">
+                                    <label class="font-weight-bold">Tip Content</label>
+                                    <textarea class="form-control" wire:model="bulkTipContent" rows="3" placeholder="Enter tip content..."></textarea>
+                                    @error('bulkTipContent') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+
+                                <div class="modal-footer px-0 pb-0 mt-4">
+                                    <button type="button" class="btn btn-secondary rounded-pill px-4" wire:click="cancelBulk">Cancel</button>
+                                    <button type="submit" class="btn btn-dark shadow-sm px-4 rounded-pill">
+                                        <i class="fas fa-save mr-1"></i> Save Bulk Tips <x-spinner for="storeBulk" />
+                                    </button>
+                                </div>
+                            </form>
+                        </x-modal>
+
+                        <!-- Single Add Modal -->
+                        <x-modal title="{{ $tip_id ? 'Edit Tip' : 'Add Tip' }}" status="{{ $modal }}">
 
                             <form wire:submit.prevent="store">
 

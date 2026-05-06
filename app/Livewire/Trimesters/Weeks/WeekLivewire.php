@@ -6,6 +6,7 @@ use App\Models\DayRange;
 use App\Models\Tip;
 use App\Models\Trimester;
 use App\Models\Week;
+use Illuminate\Support\Facades\DB;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -32,13 +33,104 @@ class WeekLivewire extends Component
 
     public $tip;
 
+    // Bulk Tip Properties
+    public $bulkModal = false;
+
+    public $selectedDays = [];
+
+    public $selectedRanges = [];
+
+    public $bulkTipContent;
+
+    public $selectAllDays = false;
+
+    public $selectAllRanges = false;
+
     public function mount($trimester_id, $week_id)
     {
-
         $this->trimester_id = $trimester_id;
         $this->trimester = Trimester::find($trimester_id);
         $this->week_id = $week_id;
         $this->week = Week::findOrFail($week_id);
+    }
+
+    public function updatedSelectAllDays($value)
+    {
+        if ($value) {
+            $week_number = $this->week->week;
+            $this->selectedDays = range(($week_number * 7) - 6, ($week_number * 7));
+            $this->selectedDays = array_map('strval', $this->selectedDays);
+        } else {
+            $this->selectedDays = [];
+        }
+    }
+
+    public function updatedSelectAllRanges($value)
+    {
+        if ($value) {
+            $this->selectedRanges = DayRange::pluck('id')->map(fn ($id) => (string) $id)->toArray();
+        } else {
+            $this->selectedRanges = [];
+        }
+    }
+
+    public function createBulk()
+    {
+        $this->resetBulkForm();
+        $this->bulkModal = true;
+    }
+
+    public function storeBulk()
+    {
+        $this->validate([
+            'selectedDays' => 'required|array|min:1',
+            'selectedRanges' => 'required|array|min:1',
+            'bulkTipContent' => 'required|string|min:5|max:160',
+        ], [
+            'selectedDays.required' => 'Please select at least one day.',
+            'selectedRanges.required' => 'Please select at least one time range.',
+            'bulkTipContent.required' => 'The tip content cannot be empty.',
+        ]);
+
+        try {
+            DB::transaction(function () {
+                $user = auth()->user();
+                $status = $user->isDoctor() ? Tip::STATUS_APPROVED : Tip::STATUS_PENDING;
+
+                foreach ($this->selectedDays as $dayId) {
+                    foreach ($this->selectedRanges as $rangeId) {
+                        Tip::create([
+                            'week_id' => $this->week_id,
+                            'day_id' => $dayId,
+                            'day_range_id' => $rangeId,
+                            'tip' => $this->bulkTipContent,
+                            'organization_id' => $user->organization_id,
+                            'created_by' => $user->id,
+                            'status' => $status,
+                        ]);
+                    }
+                }
+            });
+
+            $this->alert('success', 'Bulk tips created successfully.');
+            $this->bulkModal = false;
+            $this->resetBulkForm();
+        } catch (\Exception $e) {
+            $this->alert('error', 'Failed to create tips: '.$e->getMessage());
+        }
+    }
+
+    private function resetBulkForm()
+    {
+        $this->reset([
+            'selectedDays', 'selectedRanges', 'bulkTipContent',
+            'selectAllDays', 'selectAllRanges', 'bulkModal',
+        ]);
+    }
+
+    public function cancelBulk()
+    {
+        $this->resetBulkForm();
     }
 
     public function store()
