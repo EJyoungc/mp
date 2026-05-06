@@ -2,6 +2,37 @@
 
 All notable changes to the MaaSMS project will be documented in this file.
 
+## [1.7.0] - 2026-05-06
+
+### Added
+- **Bulk Tip Generator**:
+  - Implemented high-performance bulk creation tools in both `WeeksLivewire` (Trimester view) and `WeekLivewire` (Weekly view).
+  - Added "Select All" toggles for weeks, days, and time ranges to rapidly populate the pregnancy timeline.
+- **Tip Management Enhancements**:
+  - Added multi-selection and bulk deletion for tips within the weekly management view.
+  - Integrated single-item delete actions for individual tips with confirmation.
+- **Improved Import Sanitation**:
+  - Added automatic phone number sanitation in `MothersImport`. Numbers starting with `265` are now automatically reformatted to the local `0xxxxxxxxx` format.
+- **Comprehensive Deletion Cleanup**:
+  - Centralized cascading delete logic in the `User` model to ensure that deleting a mother automatically removes her pregnancy history and SMS logs.
+  - Implemented automated cleanup of `MessageHistory` when tips are deleted to maintain database integrity.
+- **Enhanced Verification**:
+  - Added `MothersImportTest` (Unit) to verify phone sanitation logic.
+  - Added `MotherDeletionTest` (Feature) to verify centralized cleanup.
+  - Added `TrimesterDeletionTest` (Feature) to verify deletion protections for trimesters and weeks.
+
+### Changed
+- **Enforced Model Permanence**:
+  - Restricted the deletion of **Trimesters** and **Weeks** at the model level to protect the core application structure. Any deletion attempt now throws a managed exception.
+  - Cleaned up the `WeeksLivewire` UI to remove all week deletion actions (individual and bulk).
+- **Sidebar Access Control**:
+  - Restricted access to "Days Time Range" configuration to **System Administrators** only, hiding it from Admins, Doctors, and Practitioners.
+
+### Fixed
+- **Data Integrity Constraints**:
+  - Resolved SQL integrity violations by ensuring `MessageHistory` records are properly handled (deleted) when their parent tips are removed.
+  - Added `week` and `trimester_id` to the `$fillable` property of the `Week` model to support mass assignment.
+
 ## [1.6.0] - 2026-05-05
 
 ### Added
