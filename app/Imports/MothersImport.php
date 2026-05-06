@@ -17,6 +17,11 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class MothersImport implements ToModel, WithHeadingRow, WithStartRow
 {
+    public function __construct(public ?int $organizationId = null)
+    {
+        $this->organizationId = $this->organizationId ?? auth()->user()->organization_id;
+    }
+
     /**
      * @param  array  $row
      * @return Model|null
@@ -79,7 +84,7 @@ class MothersImport implements ToModel, WithHeadingRow, WithStartRow
             'tuberculosis' => $row['tuberculosis'],
             'asthma' => $row['asthma'],
             'menstrual_cycle' => $row['menstrual_cycle'],
-            'organization_id' => auth()->user()->organization_id,
+            'organization_id' => $this->organizationId,
             'organization_verify' => 'verified',
         ]);
 
@@ -87,7 +92,7 @@ class MothersImport implements ToModel, WithHeadingRow, WithStartRow
         History::create([
             'mother_id' => $user->id,
             'last_menstrual_cycle' => $this->convertExcelDate($row['last_menstrual_cycle']),
-            'organization_id' => auth()->user()->organization_id,
+            'organization_id' => $this->organizationId,
         ]);
 
         return $user;
