@@ -74,6 +74,16 @@ class User extends Authenticatable
         'two_factor_secret',
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            if ($user->isMother()) {
+                History::where('mother_id', $user->id)->delete();
+                MessageHistory::where('mother_id', $user->id)->delete();
+            }
+        });
+    }
+
     public function district()
     {
         return $this->belongsTo(District::class);

@@ -5,9 +5,7 @@ namespace App\Livewire\Users;
 use App\Mail\InvitationMail;
 use App\Mail\Reset;
 use App\Models\District;
-use App\Models\History;
 use App\Models\Invitation;
-use App\Models\MessageHistory;
 use App\Models\Organization;
 use App\Models\Role;
 use App\Models\User;
@@ -114,9 +112,6 @@ class UsersLivewire extends Component
     public function delete($id)
     {
         $user = User::findOrFail($id);
-        $h = History::where('mother_id', $id)->delete();
-        $mh = MessageHistory::where('mother_id', $id)->delete();
-
         $user->delete();
         $this->alert('success', 'User deleted successfully');
     }
@@ -176,7 +171,7 @@ class UsersLivewire extends Component
 
         // Check if role is allowed for this user
         $role = Role::findOrFail($this->inviteRoleId);
-        if ($loggedInUser->isPharmacyAdmin() && !in_array($role->name, ['practitioner', 'admin'])) {
+        if ($loggedInUser->isPharmacyAdmin() && ! in_array($role->name, ['practitioner', 'admin'])) {
             $this->alert('error', 'Pharmacy admins can only invite practitioners or other admins.');
 
             return;

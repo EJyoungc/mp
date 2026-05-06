@@ -6,7 +6,7 @@ use App\Helper\StandardData as SD;
 use App\Models\Area;
 use App\Models\District;
 use App\Models\History;
-use App\Models\MessageHistory;
+use App\Models\Organization;
 use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
@@ -363,8 +363,6 @@ class MothersManagementLivewire extends Component
     public function delete($id)
     {
         $mother = User::findOrFail($id);
-        History::where('mother_id', $id)->delete();
-        MessageHistory::where('mother_id', $id)->delete();
         $mother->delete();
 
         $this->alert('success', 'Mother record deleted');
@@ -424,7 +422,7 @@ class MothersManagementLivewire extends Component
             'religions' => SD::getReligions(),
             'educationLevels' => SD::getEducationLevels(),
             'maritalStatuses' => SD::getMaritalStatuses(),
-            'organizations' => $user->isSystemAdmin() ? \App\Models\Organization::where('is_pharmacy', false)->get() : [],
+            'organizations' => $user->isSystemAdmin() ? Organization::where('is_pharmacy', false)->get() : [],
         ]);
     }
 }
