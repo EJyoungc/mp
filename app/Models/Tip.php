@@ -61,4 +61,12 @@ class Tip extends Model
     {
         return $query->where('status', self::STATUS_APPROVED);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function (Tip $tip) {
+            // Delete MessageHistory records associated with this tip to maintain integrity
+            MessageHistory::where('tip_id', $tip->id)->delete();
+        });
+    }
 }

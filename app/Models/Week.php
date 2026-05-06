@@ -9,6 +9,22 @@ class Week extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'week',
+        'trimester_id',
+    ];
+
+    protected static function booted()
+    {
+        static::deleting(function (Week $week) {
+            foreach ($week->tips as $tip) {
+                $tip->delete();
+            }
+
+            // Delete MessageHistory records associated with this week
+            MessageHistory::where('week_id', $week->id)->delete();
+        });
+    }
 
     public function tips(){
         return $this->hasMany(Tip::class);

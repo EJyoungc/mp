@@ -46,12 +46,49 @@ class WeekLivewire extends Component
 
     public $selectAllRanges = false;
 
+    public $selectedTips = [];
+
+    public $selectAllTips = false;
+
     public function mount($trimester_id, $week_id)
     {
         $this->trimester_id = $trimester_id;
         $this->trimester = Trimester::find($trimester_id);
         $this->week_id = $week_id;
         $this->week = Week::findOrFail($week_id);
+    }
+
+    public function updatedSelectAllTips($value)
+    {
+        if ($value) {
+            $this->selectedTips = Tip::where('week_id', $this->week_id)
+                ->pluck('id')
+                ->map(fn ($id) => (string) $id)
+                ->toArray();
+        } else {
+            $this->selectedTips = [];
+        }
+    }
+
+    public function delete($id)
+    {
+        $tip = Tip::findOrFail($id);
+        $tip->delete();
+        $this->alert('success', 'Tip deleted successfully');
+    }
+
+    public function deleteSelected()
+    {
+        if (empty($this->selectedTips)) {
+            $this->alert('warning', 'Please select at least one tip.');
+
+            return;
+        }
+
+        Tip::whereIn('id', $this->selectedTips)->delete();
+        $this->selectedTips = [];
+        $this->selectAllTips = false;
+        $this->alert('success', 'Selected tips deleted successfully');
     }
 
     public function updatedSelectAllDays($value)

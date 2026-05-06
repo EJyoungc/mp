@@ -36,10 +36,82 @@ class WeeksLivewire extends Component
 
     public $selectAllRanges = false;
 
+    public $selectedTableWeeks = [];
+
+    public $selectAllTableWeeks = false;
+
+    public $week_id;
+
+    public $week_number;
+
     public function mount($id)
     {
         $this->trimester_id = $id;
         $this->trimester = Trimester::find($id);
+    }
+
+    public function updatedSelectAllTableWeeks($value)
+    {
+        if ($value) {
+            $this->selectedTableWeeks = Week::where('trimester_id', $this->trimester_id)
+                ->pluck('id')
+                ->map(fn ($id) => (string) $id)
+                ->toArray();
+        } else {
+            $this->selectedTableWeeks = [];
+        }
+    }
+
+    public function editWeek($id)
+    {
+        $week = Week::findOrFail($id);
+        $this->week_id = $week->id;
+        $this->week_number = $week->week;
+        $this->modal = false; // Close bulk modal if open
+        // I might need a separate modal for editing a week or repurpose the modal variable
+        // For now let's assume a single modal variable is used and I'll toggle it in the view
+        $this->dispatch('open-edit-week-modal');
+    }
+
+    public function updateWeek()
+    {
+        $this->validate([
+            'week_number' => 'required|integer',
+        ]);
+
+        $week = Week::findOrFail($this->week_id);
+        $week->update(['week' => $this->week_number]);
+
+        $this->alert('success', 'Week updated successfully');
+        $this->dispatch('close-edit-week-modal');
+    }
+
+    public function delete($id)
+    {
+        $week = Week::findOrFail($id);
+        // Cascading delete for tips
+        $week->tips()->delete();
+        $week->delete();
+
+        $this->alert('success', 'Week and associated tips deleted successfully');
+    }
+
+    public function deleteSelected()
+    {
+        if (empty($this->selectedTableWeeks)) {
+            $this->alert('warning', 'Please select at least one week.');
+
+            return;
+        }
+
+        DB::transaction(function () {
+            Tip::whereIn('week_id', $this->selectedTableWeeks)->delete();
+            Week::whereIn('id', $this->selectedTableWeeks)->delete();
+        });
+
+        $this->selectedTableWeeks = [];
+        $this->selectAllTableWeeks = false;
+        $this->alert('success', 'Selected weeks and their tips deleted successfully');
     }
 
     public function updatedSelectAllWeeks($value)

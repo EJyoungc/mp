@@ -38,6 +38,13 @@
             <div class="row">
                 <div class="col-12">
                     <div class="d-flex justify-content-end mb-3">
+                        @if(count($selectedTips) > 0)
+                            <button wire:click="deleteSelected" 
+                                    wire:confirm="Are you sure you want to delete {{ count($selectedTips) }} selected tips?"
+                                    class="btn btn-danger mr-2 shadow-sm rounded-pill px-4">
+                                <i class="fas fa-trash-alt mr-1"></i> Delete Selected ({{ count($selectedTips) }})
+                            </button>
+                        @endif
                         <button wire:click="createBulk" class="btn btn-outline-dark mr-2 shadow-sm rounded-pill px-4">
                             <i class="fas fa-layer-group mr-1"></i> Bulk Add Tips <x-spinner for="createBulk" />
                         </button>
@@ -146,6 +153,12 @@
                                 <table class="table table-hover table-inverse ">
                                     <thead class="thead-inverse">
                                         <tr>
+                                            <th style="width: 50px;">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="selectAllTips" wire:model.live="selectAllTips">
+                                                    <label class="custom-control-label" for="selectAllTips"></label>
+                                                </div>
+                                            </th>
                                             <th>#</th>
                                             <th>Tips</th>
                                             <th>Day</th>
@@ -156,7 +169,13 @@
                                     </thead>
                                     <tbody>
                                         @forelse ($tips as $index => $item)
-                                            <tr>
+                                            <tr wire:key="tip-{{ $item->id }}">
+                                                <td>
+                                                    <div class="custom-control custom-checkbox">
+                                                        <input type="checkbox" class="custom-control-input" id="tip-{{ $item->id }}" value="{{ $item->id }}" wire:model.live="selectedTips">
+                                                        <label class="custom-control-label" for="tip-{{ $item->id }}"></label>
+                                                    </div>
+                                                </td>
                                                 <td scope="row">{{ $item->id }}</td>
 
                                                 <td>
@@ -200,6 +219,10 @@
                                                             <a class="dropdown-item"
                                                                 wire:click.prevent="create({{ $item->id }})"
                                                                 href="#"><i class="fas fa-edit"></i> Edit</a>
+                                                            <a class="dropdown-item text-danger"
+                                                                wire:click.prevent="delete({{ $item->id }})"
+                                                                wire:confirm="Are you sure you want to delete this tip?"
+                                                                href="#"><i class="fas fa-trash"></i> Delete</a>
                                                             @if(auth()->user()->isSystemAdmin())
                                                                 <a class="dropdown-item {{ $item->is_template ? 'text-danger' : 'text-primary' }}"
                                                                     wire:click.prevent="markAsTemplate({{ $item->id }})"
