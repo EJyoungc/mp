@@ -32,30 +32,63 @@
                                         <tr>
                                             <th>#</th>
                                             <th>Name</th>
-                                            <th></th>
+                                            <th>Email</th>
+                                            <th>Status</th>
+                                            <th>Verification</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
 
                                         @forelse ($users as $item)
-                                            <tr>
-                                                <td scope="row">{{ $item->id }}</td>
+                                            <tr wire:key="org-user-{{ $item->id }}">
+                                                <td scope="row">{{ $loop->iteration }}</td>
                                                 <td>{{ $item->name }}</td>
+                                                <td>{{ $item->email }}</td>
                                                 <td>
-
-                                                    <a class="btn btn-secondary dropdown-toggle" type="button"
-                                                        id="triggerId" data-toggle="dropdown" aria-haspopup="true"
-                                                        aria-expanded="false">
-                                                        Dropdown
-                                                    </a>
-                                                    <div class="dropdown-menu" aria-labelledby="triggerId">
-                                                        <a wire:click='approve({{ $item->id }})'  class="dropdown-item" href="#">Approve</a>
-                                                        <a class="dropdown-item disabled" href="#">Disabled
-                                                            action</a>
-                                                    </div>
-
+                                                    <span class="badge badge-{{ $item->is_active == 1 ? 'success' : 'danger' }}">
+                                                        {{ $item->is_active == 1 ? 'Active' : 'Inactive' }}
+                                                    </span>
                                                 </td>
-                                            @empty
+                                                <td>
+                                                    @if($item->organization_verify === 'verified')
+                                                        <span class="badge badge-success">Verified</span>
+                                                    @elseif($item->organization_verify === 'pending')
+                                                        <span class="badge badge-warning">Pending</span>
+                                                    @elseif($item->organization_verify === 'declined')
+                                                        <span class="badge badge-danger">Declined</span>
+                                                    @else
+                                                        <span class="badge badge-secondary">Unverified</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-navy btn-sm dropdown-toggle" type="button"
+                                                            id="dropdownMenuButton{{ $item->id }}" data-toggle="dropdown" aria-haspopup="true"
+                                                            aria-expanded="false">
+                                                            Actions
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-right shadow border-0" aria-labelledby="dropdownMenuButton{{ $item->id }}">
+                                                            @if($item->organization_verify === 'pending')
+                                                                <a wire:click.prevent='approve({{ $item->id }})' class="dropdown-item text-success" href="#">
+                                                                    <i class="fas fa-check mr-2"></i> Approve
+                                                                </a>
+                                                                <a wire:click.prevent='decline({{ $item->id }})' class="dropdown-item text-danger" href="#">
+                                                                    <i class="fas fa-times mr-2"></i> Decline
+                                                                </a>
+                                                                <div class="dropdown-divider"></div>
+                                                            @endif
+                                                            <a class="dropdown-item" href="{{ route('users.edit', [$item->role->name, $item->id]) }}">
+                                                                <i class="fas fa-edit mr-2 text-info"></i> Edit
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="6" class="text-center">No users found in this organization.</td>
+                                            </tr>
                                         @endforelse
                                     </tbody>
                                 </table>
@@ -68,4 +101,9 @@
         </div>
     </div>
     <!-- /.content -->
+
+    <style>
+        .btn-navy { background-color: #001f3f; color: #fff; border: none; }
+        .btn-navy:hover { background-color: #002d5c; color: #fff; }
+    </style>
 </div>

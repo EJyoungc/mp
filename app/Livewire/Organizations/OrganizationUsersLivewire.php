@@ -43,9 +43,27 @@ class OrganizationUsersLivewire extends Component
             return;
         }
 
-        $userToApprove->organization_verify = 'approved';
+        $userToApprove->organization_verify = 'verified';
         $userToApprove->save();
         $this->alert('success', 'User approved successfully');
+    }
+
+    public function decline($userId)
+    {
+        $userToApprove = User::findOrFail($userId);
+        $organization = Organization::findOrFail($this->id);
+
+        // Authorization check: Only System Admin or Organization Owner can decline
+        $user = auth()->user();
+        if (! $user->isSystemAdmin() && $organization->owner_id !== $user->id) {
+            $this->alert('error', 'Unauthorized action.');
+
+            return;
+        }
+
+        $userToApprove->organization_verify = 'declined';
+        $userToApprove->save();
+        $this->alert('success', 'User declined successfully');
     }
 
     public function create()

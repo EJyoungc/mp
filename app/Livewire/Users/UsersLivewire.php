@@ -90,8 +90,24 @@ class UsersLivewire extends Component
             return;
         }
 
-        $user->update(['organization_verify' => 'verified']);
-        $this->alert('success', 'User approved successfully');
+        $user->update(['organization_verify' => 'verified', 'is_active' => 1]);
+        $this->alert('success', 'User approved and activated successfully');
+    }
+
+    public function verifyAll()
+    {
+        if (! auth()->user()->isSystemAdmin()) {
+            $this->alert('error', 'Unauthorized');
+
+            return;
+        }
+
+        $count = User::where('organization_verify', 'pending')->update([
+            'organization_verify' => 'verified',
+            'is_active' => 1,
+        ]);
+
+        $this->alert('success', "{$count} users verified successfully");
     }
 
     public function decline($id)

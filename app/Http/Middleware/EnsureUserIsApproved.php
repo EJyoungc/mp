@@ -17,14 +17,24 @@ class EnsureUserIsApproved
     {
         $user = $request->user();
 
-        if ($user && $user->organization_id) {
-            if ($user->organization_verify === 'pending') {
+        if ($user) {
+            // Check if user is active
+            if ($user->is_active == 0) {
                 if (! $request->is('waiting-approval') && ! $request->is('logout')) {
                     return redirect()->route('waiting-approval');
                 }
-            } elseif ($user->organization_verify === 'declined') {
-                if (! $request->is('access-denied') && ! $request->is('logout')) {
-                    return redirect()->route('access-denied');
+            }
+
+            // Check organization verification if they belong to one
+            if ($user->organization_id) {
+                if ($user->organization_verify === 'pending') {
+                    if (! $request->is('waiting-approval') && ! $request->is('logout')) {
+                        return redirect()->route('waiting-approval');
+                    }
+                } elseif ($user->organization_verify === 'declined') {
+                    if (! $request->is('access-denied') && ! $request->is('logout')) {
+                        return redirect()->route('access-denied');
+                    }
                 }
             }
         }

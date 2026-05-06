@@ -89,6 +89,11 @@
                         @endif
                         <div class="col text-right">
                             <div class="btn-group mr-2">
+                                @if(auth()->user()->isSystemAdmin())
+                                    <button type="button" wire:click="verifyAll" wire:confirm="Are you sure you want to verify all pending users?" class="btn btn-outline-success rounded-pill px-4 mr-2">
+                                        <i class="fas fa-check-double mr-2"></i> Verify All Pending
+                                    </button>
+                                @endif
                                 <button type="button" wire:click="showInviteModal" class="btn btn-outline-navy rounded-pill px-4">
                                     <i class="fas fa-paper-plane mr-2"></i> Invite User
                                 </button>
@@ -181,6 +186,15 @@
                                                         </a>
                                                         <button type="button" class="btn btn-white btn-sm px-3 dropdown-toggle dropdown-icon" data-toggle="dropdown"></button>
                                                         <div class="dropdown-menu dropdown-menu-right shadow border-0">
+                                                            @if($item->organization_verify === 'pending' && (auth()->user()->isOrgAdmin() || auth()->user()->isSystemAdmin()))
+                                                                <a class="dropdown-item text-success" wire:click.prevent="approve({{ $item->id }})" href="#">
+                                                                    <i class="fas fa-check-circle mr-2"></i> Verify User
+                                                                </a>
+                                                                <a class="dropdown-item text-warning" wire:click.prevent="decline({{ $item->id }})" href="#">
+                                                                    <i class="fas fa-times-circle mr-2"></i> Decline User
+                                                                </a>
+                                                                <div class="dropdown-divider"></div>
+                                                            @endif
                                                             <a class="dropdown-item" wire:click.prevent="showRoleModal({{ $item->id }})" href="#">
                                                                 <i class="fas fa-user-tag mr-2 text-muted"></i> Change Role
                                                             </a>
