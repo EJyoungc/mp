@@ -65,13 +65,13 @@ class MothersImport implements ToModel, WithHeadingRow, WithStartRow
             'religion' => $row['religion'],
             'level_of_education' => $row['level_of_education'],
             'occupation' => $row['occupation'],
-            'phone' => $row['phone'],
+            'phone' => $this->sanitizePhone($row['phone']),
             'address' => $row['address'],
             'district_id' => $districtId,
             'area_id' => $areaId,
             'traditional_authority' => $row['traditional_authority'],
             'next_of_kin' => $row['next_of_kin'],
-            'next_of_kin_mobile' => $row['next_of_kin_mobile'],
+            'next_of_kin_mobile' => $this->sanitizePhone($row['next_of_kin_mobile']),
             'height' => $row['height'],
             'leg_or_spine' => $row['leg_or_spine'],
             'deformity' => $row['deformity'],
@@ -96,6 +96,23 @@ class MothersImport implements ToModel, WithHeadingRow, WithStartRow
         ]);
 
         return $user;
+    }
+
+    /**
+     * Sanitize phone number to ensure it starts with 0.
+     */
+    public function sanitizePhone(?string $phone): ?string
+    {
+        if (empty($phone)) {
+            return $phone;
+        }
+
+        $phone = trim($phone);
+        if (str_starts_with($phone, '265')) {
+            return '0'.substr($phone, 3);
+        }
+
+        return $phone;
     }
 
     /**
