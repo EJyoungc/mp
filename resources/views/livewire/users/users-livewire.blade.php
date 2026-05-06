@@ -159,12 +159,11 @@
                                                         <span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i> Verified</span>
                                                     @elseif($item->organization_verify === 'pending')
                                                         <div class="d-flex flex-column align-items-center gap-1">
-                                                            <span class="badge badge-warning px-2 py-1 mb-1"><i class="fas fa-clock mr-1"></i> Pending</span>
+                                                            <span class="badge badge-warning px-2 py-1 mb-2"><i class="fas fa-clock mr-1"></i> Pending</span>
                                                             @if(auth()->user()->isOrgAdmin() || auth()->user()->isSystemAdmin())
-                                                                <div class="btn-group btn-group-xs">
-                                                                    <button wire:click="approve({{ $item->id }})" class="btn btn-xs btn-success" title="Approve"><i class="fas fa-check"></i></button>
-                                                                    <button wire:click="decline({{ $item->id }})" class="btn btn-xs btn-danger" title="Decline"><i class="fas fa-times"></i></button>
-                                                                </div>
+                                                                <button wire:click="showVerifyModal({{ $item->id }})" class="btn btn-xs btn-outline-success px-2 rounded-pill shadow-sm" title="Verify User">
+                                                                    <i class="fas fa-user-check mr-1"></i> Verify Now
+                                                                </button>
                                                             @endif
                                                         </div>
                                                     @else

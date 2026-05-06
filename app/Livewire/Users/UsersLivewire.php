@@ -30,6 +30,8 @@ class UsersLivewire extends Component
 
     public $inviteModal = false;
 
+    public $verifyModal = false;
+
     public $user;
 
     public $selectedUser;
@@ -91,6 +93,7 @@ class UsersLivewire extends Component
         }
 
         $user->update(['organization_verify' => 'verified', 'is_active' => 1]);
+        $this->verifyModal = false;
         $this->alert('success', 'User approved and activated successfully');
     }
 
@@ -215,6 +218,12 @@ class UsersLivewire extends Component
         $this->alert('success', 'Invitation sent successfully');
     }
 
+    public function showVerifyModal($userId)
+    {
+        $this->selectedUser = User::findOrFail($userId);
+        $this->verifyModal = true;
+    }
+
     public function create()
     {
         $this->modal = true;
@@ -226,6 +235,7 @@ class UsersLivewire extends Component
             'modal',
             'roleModal',
             'inviteModal',
+            'verifyModal',
             'user',
             'selectedUser',
             'newRoleId',
