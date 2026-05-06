@@ -181,16 +181,6 @@
 
 
                     <li class="nav-item">
-                        <a href="{{ route('days.range') }}" class="nav-link">
-                            <i class="nav-icon fas fa-th"></i>
-                            <p>
-                                Days Time Range
-
-                            </p>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
                         <a href="{{ route('messages.histories') }}" class="nav-link">
                             <i class="nav-icon fas fa-history"></i>
                             <p>Message Histories</p>
@@ -246,17 +236,6 @@
                         </ul>
                     </li>
 
-
-                    <li class="nav-item">
-                        <a href="{{ route('days.range') }}" class="nav-link">
-                            <i class="nav-icon fas fa-th"></i>
-                            <p>
-                                Days Time Range
-
-                            </p>
-                        </a>
-                    </li>
-
                     <li class="nav-item">
                         <a href="{{ route('messages.histories') }}" class="nav-link">
                             <i class="nav-icon fas fa-history"></i>
@@ -306,13 +285,6 @@
                                 </li>
                             @endforeach
                         </ul>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="{{ route('days.range') }}" class="nav-link">
-                            <i class="nav-icon fas fa-th"></i>
-                            <p>Days Time Range</p>
-                        </a>
                     </li>
 
                     <li class="nav-item">
