@@ -4,6 +4,7 @@ namespace App\Actions\Fortify;
 
 use App\Models\Invitation;
 use App\Models\Organization;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -34,7 +35,7 @@ class CreateNewUser implements CreatesNewUsers
                     return $input['org_action'] === 'join' && empty($input['invitation_token']);
                 }),
                 'nullable',
-                'exists:organizations,id'
+                'exists:organizations,id',
             ],
             'org_name' => ['required_if:org_action,create', 'string', 'max:255'],
             'org_address' => ['nullable', 'string', 'max:255'],
@@ -62,7 +63,7 @@ class CreateNewUser implements CreatesNewUsers
                 $user->update([
                     'organization_id' => $invitation->organization_id,
                     'role_id' => $invitation->role_id,
-                    'organization_verify' => 'approved', // Invited users are pre-approved
+                    'organization_verify' => 'verified', // Invited users are pre-approved
                 ]);
 
                 $invitation->update([
@@ -78,11 +79,11 @@ class CreateNewUser implements CreatesNewUsers
                     'area_id' => $input['org_area_id'],
                 ]);
 
-                $adminRole = \App\Models\Role::where('name', 'admin')->first();
+                $adminRole = Role::where('name', 'admin')->first();
 
                 $user->update([
                     'organization_id' => $organization->id,
-                    'organization_verify' => 'approved', // Creator is automatically approved
+                    'organization_verify' => 'verified', // Creator is automatically approved
                     'role_id' => $adminRole ? $adminRole->id : 2, // Creator becomes Admin of their organization
                 ]);
             } else {

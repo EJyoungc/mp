@@ -106,7 +106,7 @@ class OrganizationUserCheckLivewire extends Component
 
         $user = User::find(Auth::user()->id);
         $user->organization_id = $org->id;
-        $user->organization_verify = 'approved';
+        $user->organization_verify = 'verified';
 
         // Change role to 'admin' (ID 2) when creating an organization
         $adminRole = Role::where('name', 'admin')->first();

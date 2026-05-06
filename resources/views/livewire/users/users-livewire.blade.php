@@ -155,28 +155,38 @@
                                                     <small class="text-info"><i class="fas fa-hospital-alt mr-1"></i> {{ $item->organization->name ?? 'System' }}</small>
                                                 </td>
                                                 <td class="text-center">
-                                                    @if($item->organization_verify === 'verified' || $item->organization_verify === 'accepted')
-                                                        <span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i> Verified</span>
-                                                    @elseif($item->organization_verify === 'pending')
-                                                        <div class="d-flex flex-column align-items-center gap-1">
-                                                            <span class="badge badge-warning px-2 py-1 mb-2"><i class="fas fa-clock mr-1"></i> Pending</span>
-                                                            @if(auth()->user()->isOrgAdmin() || auth()->user()->isSystemAdmin())
-                                                                <button wire:click="showVerifyModal({{ $item->id }})" class="btn btn-xs btn-outline-success px-2 rounded-pill shadow-sm" title="Verify User">
-                                                                    <i class="fas fa-user-check mr-1"></i> Verify Now
-                                                                </button>
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="checkbox" 
+                                                            class="custom-control-input" 
+                                                            id="verify-{{ $item->id }}" 
+                                                            wire:click="{{ in_array($item->organization_verify, ['verified', 'accepted', 'approved']) ? 'decline('.$item->id.')' : 'approve('.$item->id.')' }}"
+                                                            {{ in_array($item->organization_verify, ['verified', 'accepted', 'approved']) ? 'checked' : '' }}
+                                                            @if(!(auth()->user()->isOrgAdmin() || auth()->user()->isSystemAdmin())) disabled @endif>
+                                                        <label class="custom-control-label" for="verify-{{ $item->id }}">
+                                                            @if(in_array($item->organization_verify, ['verified', 'accepted', 'approved']))
+                                                                <span class="badge badge-success px-2 py-1">Verified</span>
+                                                            @elseif($item->organization_verify === 'pending')
+                                                                <span class="badge badge-warning px-2 py-1">Pending</span>
+                                                            @else
+                                                                <span class="badge badge-danger px-2 py-1">{{ ucfirst($item->organization_verify ?? 'Unverified') }}</span>
                                                             @endif
-                                                        </div>
-                                                    @else
-                                                        <span class="badge badge-danger px-2 py-1"><i class="fas fa-times-circle mr-1"></i> {{ ucfirst($item->organization_verify ?? 'Unverified') }}</span>
-                                                        @if(($item->organization_verify === 'declined') && (auth()->user()->isOrgAdmin() || auth()->user()->isSystemAdmin()))
-                                                             <button wire:click="approve({{ $item->id }})" class="btn btn-xs btn-link text-success p-0 ml-1" title="Re-approve"><i class="fas fa-redo"></i></button>
-                                                        @endif
-                                                    @endif
+                                                        </label>
+                                                    </div>
                                                 </td>
                                                 <td class="text-center">
-                                                    <span class="badge badge-{{ $item->is_active == 1 ? 'success' : 'danger' }} px-2 py-1">
-                                                        {{ $item->is_active == 1 ? 'Active' : 'Inactive' }}
-                                                    </span>
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="checkbox" 
+                                                            class="custom-control-input" 
+                                                            id="active-{{ $item->id }}" 
+                                                            wire:click="toggleActive({{ $item->id }})"
+                                                            {{ $item->is_active == 1 ? 'checked' : '' }}
+                                                            @if(!(auth()->user()->isOrgAdmin() || auth()->user()->isSystemAdmin())) disabled @endif>
+                                                        <label class="custom-control-label" for="active-{{ $item->id }}">
+                                                            <span class="badge badge-{{ $item->is_active == 1 ? 'success' : 'danger' }} px-2 py-1">
+                                                                {{ $item->is_active == 1 ? 'Active' : 'Inactive' }}
+                                                            </span>
+                                                        </label>
+                                                    </div>
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="btn-group shadow-sm rounded">
