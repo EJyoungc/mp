@@ -97,6 +97,14 @@ class MothersManagementLivewire extends Component
 
     public $menstrualCycle = 'Regular';
 
+    public $selectedMothers = [];
+
+    public $selectAll = false;
+
+    public $bulkOrganizationId;
+
+    public $reassignModal = false;
+
     public function mount()
     {
         $user = auth()->user();
@@ -120,6 +128,59 @@ class MothersManagementLivewire extends Component
     public function updatedDistrictId()
     {
         $this->area_id = null;
+    }
+
+    public function updatedSelectAll($value)
+    {
+        if ($value) {
+            $user = auth()->user();
+            $query = User::where('role_id', 4);
+            if (! $user->isSystemAdmin()) {
+                $query->where('organization_id', $user->organization_id);
+            }
+            $query->when($this->search, function ($q) {
+                $q->where(function ($sub) {
+                    $sub->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('phone', 'like', '%'.$this->search.'%');
+                });
+            });
+
+            $this->selectedMothers = $query->pluck('id')->map(fn ($id) => (string) $id)->toArray();
+        } else {
+            $this->selectedMothers = [];
+        }
+    }
+
+    public function reassign()
+    {
+        if (empty($this->selectedMothers)) {
+            $this->alert('warning', 'Please select at least one mother.');
+
+            return;
+        }
+        $this->reassignModal = true;
+    }
+
+    public function confirmReassign()
+    {
+        $this->validate([
+            'bulkOrganizationId' => 'required|exists:organizations,id',
+        ]);
+
+        User::whereIn('id', $this->selectedMothers)->update([
+            'organization_id' => $this->bulkOrganizationId,
+        ]);
+
+        // Also update history records
+        History::whereIn('mother_id', $this->selectedMothers)->update([
+            'organization_id' => $this->bulkOrganizationId,
+        ]);
+
+        $this->alert('success', 'Mothers reassigned successfully');
+        $this->selectedMothers = [];
+        $this->selectAll = false;
+        $this->reassignModal = false;
+        $this->bulkOrganizationId = null;
     }
 
     public function addArea()
@@ -363,6 +424,7 @@ class MothersManagementLivewire extends Component
             'religions' => SD::getReligions(),
             'educationLevels' => SD::getEducationLevels(),
             'maritalStatuses' => SD::getMaritalStatuses(),
+            'organizations' => $user->isSystemAdmin() ? \App\Models\Organization::all() : [],
         ]);
     }
 }

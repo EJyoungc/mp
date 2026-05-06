@@ -29,6 +29,11 @@
                     </div>
                 </div>
                 <div class="col-md-4 text-right">
+                    @if(auth()->user()->isSystemAdmin() && count($selectedMothers) > 0)
+                        <button wire:click="reassign" class="btn btn-warning shadow-sm px-4 mr-2">
+                            <i class="fas fa-exchange-alt mr-2"></i> Reassign ({{ count($selectedMothers) }})
+                        </button>
+                    @endif
                     <button wire:click="create" class="btn btn-navy shadow-sm px-4">
                         <i class="fas fa-plus-circle mr-2"></i> Register New Mother
                     </button>
@@ -42,6 +47,14 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light text-navy">
                                 <tr>
+                                    @if(auth()->user()->isSystemAdmin())
+                                        <th class="px-4 py-3 border-0" style="width: 50px;">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="selectAll" wire:model.live="selectAll">
+                                                <label class="custom-control-label" for="selectAll"></label>
+                                            </div>
+                                        </th>
+                                    @endif
                                     <th class="px-4 py-3 border-0">Mother Info</th>
                                     <th class="py-3 border-0">Contact Details</th>
                                     <th class="py-3 border-0">Status</th>
@@ -51,6 +64,14 @@
                             <tbody>
                                 @forelse($mothers as $mother)
                                     <tr wire:key="mother-{{ $mother->id }}">
+                                        @if(auth()->user()->isSystemAdmin())
+                                            <td class="px-4 py-3 border-top-0">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="mother-{{ $mother->id }}" value="{{ $mother->id }}" wire:model.live="selectedMothers">
+                                                    <label class="custom-control-label" for="mother-{{ $mother->id }}"></label>
+                                                </div>
+                                            </td>
+                                        @endif
                                         <td class="px-4 py-3 border-top-0">
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar-circle bg-soft-navy text-navy mr-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 50%; background: #eef2f7; font-weight: bold;">
@@ -380,6 +401,29 @@
             <div class="modal-footer px-0 pb-0">
                 <button type="button" class="btn btn-secondary" wire:click="$set('areaModal', false)">Cancel</button>
                 <button type="submit" class="btn btn-navy shadow-sm px-4">Save Area</button>
+            </div>
+        </form>
+    </x-modal>
+
+    <!-- Modal for Bulk Reassignment -->
+    <x-modal title="Bulk Reassign Mothers" status="{{ $reassignModal }}">
+        <form wire:submit.prevent="confirmReassign">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle mr-2"></i> You are reassigning <strong>{{ count($selectedMothers) }}</strong> mothers to a new organization.
+            </div>
+            <div class="form-group">
+                <label>Target Organization <span class="text-danger">*</span></label>
+                <select class="form-control" wire:model="bulkOrganizationId">
+                    <option value="">Select Organization</option>
+                    @foreach($organizations as $org)
+                        <option value="{{ $org->id }}">{{ $org->name }}</option>
+                    @endforeach
+                </select>
+                @error('bulkOrganizationId') <small class="text-danger">{{ $message }}</small> @enderror
+            </div>
+            <div class="modal-footer px-0 pb-0">
+                <button type="button" class="btn btn-secondary" wire:click="$set('reassignModal', false)">Cancel</button>
+                <button type="submit" class="btn btn-warning shadow-sm px-4">Confirm Reassignment</button>
             </div>
         </form>
     </x-modal>
