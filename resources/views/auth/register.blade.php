@@ -30,7 +30,7 @@
         @if($invitation)
             <input type="hidden" name="invitation_token" value="{{ $invitation->token }}">
             <div class="alert alert-info small py-2">
-                You are joining <strong>{{ $invitation->organization->name }}</strong> as a <strong>{{ $invitation->role->name }}</strong>.
+                You are joining <strong>{{ $invitation->organization->name ?? 'the system' }}</strong> as a <strong>{{ $invitation->role->name }}</strong>.
             </div>
         @endif
 

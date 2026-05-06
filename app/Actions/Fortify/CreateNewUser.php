@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Jetstream\Jetstream;
 
@@ -28,7 +29,13 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
             'org_action' => ['required', 'string', 'in:join,create'],
-            'organization_id' => ['required_if:org_action,join', 'nullable', 'exists:organizations,id'],
+            'organization_id' => [
+                Rule::requiredIf(function () use ($input) {
+                    return $input['org_action'] === 'join' && empty($input['invitation_token']);
+                }),
+                'nullable',
+                'exists:organizations,id'
+            ],
             'org_name' => ['required_if:org_action,create', 'string', 'max:255'],
             'org_address' => ['nullable', 'string', 'max:255'],
             'org_district_id' => ['required_if:org_action,create', 'nullable', 'exists:districts,id'],

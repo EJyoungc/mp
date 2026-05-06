@@ -27,8 +27,10 @@ class InvitationMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $orgName = $this->invitation->organization->name ?? config('app.name');
+
         return new Envelope(
-            subject: 'You have been invited to join '.$this->invitation->organization->name,
+            subject: 'You have been invited to join '.$orgName,
         );
     }
 
@@ -41,7 +43,7 @@ class InvitationMail extends Mailable
             markdown: 'emails.invitation',
             with: [
                 'url' => route('register', ['token' => $this->invitation->token]),
-                'organizationName' => $this->invitation->organization->name,
+                'organizationName' => $this->invitation->organization->name ?? 'the system',
                 'roleName' => $this->invitation->role->name,
             ],
         );
