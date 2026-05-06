@@ -2,6 +2,22 @@
 
 All notable changes to the MaaSMS project will be documented in this file.
 
+## [1.6.0] - 2026-05-05
+
+### Added
+- **Bulk Mother Management**:
+  - Implemented multi-selection and bulk organization reassignment for system administrators in the `MothersManagementLivewire` component.
+  - Added a "Select All" feature to quickly manage large sets of mother records.
+  - Integrated a bulk reassignment modal to update organization IDs for both `User` and `History` records simultaneously.
+- **Import Organization Selection**:
+  - Added an organization selector to the bulk import modal for system administrators, allowing mothers to be assigned to specific organizations during upload.
+- **Enhanced Test Coverage**:
+  - Added `MothersManagementLivewireTest` and `MothersManagerTest` (Pest) to verify bulk reassignment, selection logic, and import organization assignment.
+
+### Changed
+- **Target Organization Filtering**:
+  - Restricted organization selection to non-pharmacy entities when assigning or reassigning mothers, preventing clinical data from being incorrectly associated with pharmacies.
+
 ## [1.5.1] - 2026-05-04
 
 ### Fixed
