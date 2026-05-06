@@ -53,7 +53,7 @@ class MotherSessionHistoryLivewire extends Component
         $sms = $AT->sms();
 
         $result = $sms->send([
-            'to' => '+265995936887',
+            'to' => '+2650884348727',
             'message' => 'this is a maasms test',
             'from' => 'Maasms',
         ]);
