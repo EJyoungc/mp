@@ -36,10 +36,6 @@ class WeeksLivewire extends Component
 
     public $selectAllRanges = false;
 
-    public $selectedTableWeeks = [];
-
-    public $selectAllTableWeeks = false;
-
     public $week_id;
 
     public $week_number;
@@ -48,18 +44,6 @@ class WeeksLivewire extends Component
     {
         $this->trimester_id = $id;
         $this->trimester = Trimester::find($id);
-    }
-
-    public function updatedSelectAllTableWeeks($value)
-    {
-        if ($value) {
-            $this->selectedTableWeeks = Week::where('trimester_id', $this->trimester_id)
-                ->pluck('id')
-                ->map(fn ($id) => (string) $id)
-                ->toArray();
-        } else {
-            $this->selectedTableWeeks = [];
-        }
     }
 
     public function editWeek($id)
@@ -84,34 +68,6 @@ class WeeksLivewire extends Component
 
         $this->alert('success', 'Week updated successfully');
         $this->dispatch('close-edit-week-modal');
-    }
-
-    public function delete($id)
-    {
-        $week = Week::findOrFail($id);
-        // Cascading delete for tips
-        $week->tips()->delete();
-        $week->delete();
-
-        $this->alert('success', 'Week and associated tips deleted successfully');
-    }
-
-    public function deleteSelected()
-    {
-        if (empty($this->selectedTableWeeks)) {
-            $this->alert('warning', 'Please select at least one week.');
-
-            return;
-        }
-
-        DB::transaction(function () {
-            Tip::whereIn('week_id', $this->selectedTableWeeks)->delete();
-            Week::whereIn('id', $this->selectedTableWeeks)->delete();
-        });
-
-        $this->selectedTableWeeks = [];
-        $this->selectAllTableWeeks = false;
-        $this->alert('success', 'Selected weeks and their tips deleted successfully');
     }
 
     public function updatedSelectAllWeeks($value)

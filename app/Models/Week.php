@@ -17,12 +17,7 @@ class Week extends Model
     protected static function booted()
     {
         static::deleting(function (Week $week) {
-            foreach ($week->tips as $tip) {
-                $tip->delete();
-            }
-
-            // Delete MessageHistory records associated with this week
-            MessageHistory::where('week_id', $week->id)->delete();
+            throw new \Exception('Deletion of weeks is not allowed.');
         });
     }
 
