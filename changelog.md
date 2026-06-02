@@ -2,6 +2,19 @@
 
 All notable changes to the MaaSMS project will be documented in this file.
 
+## [1.8.0] - 2026-06-02
+
+### Added
+- **Ad Frequency Scheduling**:
+  - Added custom schedule types (`daily`, `weekly`, `monthly`) and limits (`schedule_limit`) to `PharmacyAd` model.
+  - Implemented custom database migration to add `schedule_type` and `schedule_limit` columns to `pharmacy_ads` table.
+  - Developed custom scheduling logic inside a new console command version 2: `SendAdMessagesV2` (`ads:send-v2`).
+  - Added UI elements in `PharmacyAdsManager` Livewire component and Blade view for defining the sending schedule and limits.
+
+### Fixed
+- **Testing Assertions & Environment Stability**:
+  - Explicitly initialized the `is_active` attribute to `true` inside `PharmacyAdminRestrictionTest` user factories to prevent SQLite's null evaluation from triggering redirection to the `/waiting-approval` page.
+
 ## [1.7.0] - 2026-05-06
 
 ### Added

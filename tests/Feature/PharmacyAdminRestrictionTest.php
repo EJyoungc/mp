@@ -29,6 +29,7 @@ beforeEach(function () {
         'role_id' => $this->adminRole->id,
         'organization_id' => $this->pharmacy->id,
         'organization_verify' => 'verified',
+        'is_active' => true,
     ]);
 
     // Create a regular admin
@@ -36,6 +37,7 @@ beforeEach(function () {
         'role_id' => $this->adminRole->id,
         'organization_id' => $this->clinic->id,
         'organization_verify' => 'verified',
+        'is_active' => true,
     ]);
 });
 

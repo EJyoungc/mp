@@ -20,11 +20,14 @@ class PharmacyAd extends Model
         'total_sent',
         'organization_id',
         'trimester_id',
+        'schedule_type',
+        'schedule_limit',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'trimester_id' => 'integer',
+        'schedule_limit' => 'integer',
     ];
 
     public function trimester()

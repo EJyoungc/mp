@@ -25,9 +25,13 @@ class PharmacyAdsManager extends Component
 
     public $ad_id;
 
+    public $schedule_type = 'daily';
+
+    public $schedule_limit = 1;
+
     public function createAd()
     {
-        $this->reset(['ad_id', 'product_name', 'ad_message', 'target_week_start', 'target_week_end', 'trimester_id']);
+        $this->reset(['ad_id', 'product_name', 'ad_message', 'target_week_start', 'target_week_end', 'trimester_id', 'schedule_type', 'schedule_limit']);
         $this->adModal = true;
     }
 
@@ -48,6 +52,8 @@ class PharmacyAdsManager extends Component
         $this->target_week_start = $ad->target_week_start;
         $this->target_week_end = $ad->target_week_end;
         $this->trimester_id = $ad->trimester_id;
+        $this->schedule_type = $ad->schedule_type ?? 'daily';
+        $this->schedule_limit = $ad->schedule_limit ?? 1;
 
         $this->adModal = true;
     }
@@ -61,6 +67,8 @@ class PharmacyAdsManager extends Component
             'target_week_start' => 'nullable|integer|min:1',
             'target_week_end' => 'nullable|integer|max:42',
             'trimester_id' => 'nullable|exists:trimesters,id',
+            'schedule_type' => 'required|string|in:daily,weekly,monthly',
+            'schedule_limit' => 'required|integer|min:1|max:31',
         ]);
 
         $data = [
@@ -69,6 +77,8 @@ class PharmacyAdsManager extends Component
             'target_week_start' => $this->target_week_start,
             'target_week_end' => $this->target_week_end,
             'trimester_id' => $this->trimester_id,
+            'schedule_type' => $this->schedule_type,
+            'schedule_limit' => $this->schedule_limit,
             'organization_id' => $user->isSystemAdmin() ? null : $user->organization_id,
         ];
 
@@ -98,7 +108,7 @@ class PharmacyAdsManager extends Component
 
     public function cancel()
     {
-        $this->reset(['adModal', 'product_name', 'ad_message', 'target_week_start', 'target_week_end', 'trimester_id', 'ad_id']);
+        $this->reset(['adModal', 'product_name', 'ad_message', 'target_week_start', 'target_week_end', 'trimester_id', 'ad_id', 'schedule_type', 'schedule_limit']);
     }
 
     public function render()

@@ -10,7 +10,7 @@
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
-                        <tr><th>Product</th><th>Message</th><th>Target</th><th>Total Sent</th><th>Status</th><th>Action</th></tr>
+                        <tr><th>Product</th><th>Message</th><th>Target</th><th>Schedule</th><th>Total Sent</th><th>Status</th><th>Action</th></tr>
                     </thead>
                     <tbody>
                         @forelse($ads as $ad)
@@ -18,6 +18,7 @@
                                 <td><strong>{{ $ad->product_name }}</strong></td>
                                 <td>{{ Str::limit($ad->ad_message, 50) }}</td>
                                 <td>{{ $ad->trimester_id ? 'Trimester '.$ad->trimester->trimester : 'Week '.$ad->target_week_start.'-'.$ad->target_week_end }}</td>
+                                <td><span class="badge badge-secondary">{{ ucfirst($ad->schedule_type ?? 'Daily') }} ({{ $ad->schedule_limit ?? 1 }}x)</span></td>
                                 <td><span class="badge badge-info">{{ $ad->total_sent }}</span></td>
                                 <td><span class="badge badge-{{ $ad->is_active ? 'success' : 'danger' }}">{{ $ad->is_active ? 'Active' : 'Inactive' }}</span></td>
                                 <td>
@@ -28,7 +29,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="text-center">No ads created.</td></tr>
+                            <tr><td colspan="7" class="text-center">No ads created.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -50,6 +51,26 @@
             <div class="row">
                 <div class="col-6"><div class="form-group"><label>Start Week</label><input type="number" class="form-control" wire:model="target_week_start"></div></div>
                 <div class="col-6"><div class="form-group"><label>End Week</label><input type="number" class="form-control" wire:model="target_week_end"></div></div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-group">
+                        <label>Frequency Type</label>
+                        <select class="form-control" wire:model="schedule_type">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                        <x-input-error for="schedule_type" />
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <label>Times per period</label>
+                        <input type="number" class="form-control" wire:model="schedule_limit" min="1" max="31">
+                        <x-input-error for="schedule_limit" />
+                    </div>
+                </div>
             </div>
             <div class="modal-footer px-0 pb-0">
                 <button type="button" class="btn btn-secondary" wire:click="cancel">Cancel</button>
