@@ -3,13 +3,15 @@
 All notable changes to the MaaSMS project will be documented in this file.
 
 ## [1.8.0] - 2026-06-02
-
 ### Added
 - **Ad Frequency Scheduling**:
   - Added custom schedule types (`daily`, `weekly`, `monthly`) and limits (`schedule_limit`) to `PharmacyAd` model.
   - Implemented custom database migration to add `schedule_type` and `schedule_limit` columns to `pharmacy_ads` table.
   - Developed custom scheduling logic inside a new console command version 2: `SendAdMessagesV2` (`ads:send-v2`).
   - Added UI elements in `PharmacyAdsManager` Livewire component and Blade view for defining the sending schedule and limits.
+- **Dynamic Week Selection**:
+  - Converted start week and end week inputs into `<select>` dropdowns inside the ad creation/editing modal.
+  - Configured weeks to automatically load and restrict based on the target trimester selected using Livewire `wire:model.live` and lifecycle hook (`updatedTrimesterId`).
 
 ### Fixed
 - **Testing Assertions & Environment Stability**:

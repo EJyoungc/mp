@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard;
 
 use App\Models\PharmacyAd;
 use App\Models\Trimester;
+use App\Models\Week;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 
@@ -106,6 +107,23 @@ class PharmacyAdsManager extends Component
         }
     }
 
+    public function updatedTrimesterId($value)
+    {
+        if ($value) {
+            $weeks = Week::where('trimester_id', $value)->orderBy('week')->get();
+            if ($weeks->isNotEmpty()) {
+                $this->target_week_start = $weeks->first()->week;
+                $this->target_week_end = $weeks->last()->week;
+            } else {
+                $this->target_week_start = null;
+                $this->target_week_end = null;
+            }
+        } else {
+            $this->target_week_start = 1;
+            $this->target_week_end = 40;
+        }
+    }
+
     public function cancel()
     {
         $this->reset(['adModal', 'product_name', 'ad_message', 'target_week_start', 'target_week_end', 'trimester_id', 'ad_id', 'schedule_type', 'schedule_limit']);
@@ -120,9 +138,15 @@ class PharmacyAdsManager extends Component
             $adsQuery->where('organization_id', $user->organization_id);
         }
 
+        $weeksQuery = Week::orderBy('week');
+        if ($this->trimester_id) {
+            $weeksQuery->where('trimester_id', $this->trimester_id);
+        }
+
         return view('livewire.dashboard.pharmacy-ads-manager', [
             'ads' => $adsQuery->get(),
             'trimesters' => Trimester::all(),
+            'weeks' => $weeksQuery->get(),
         ]);
     }
 }

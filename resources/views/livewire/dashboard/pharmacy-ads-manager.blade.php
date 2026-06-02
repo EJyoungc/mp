@@ -43,14 +43,34 @@
             <div class="form-group"><label>SMS Content</label><textarea class="form-control" wire:model="ad_message"></textarea><x-input-error for="ad_message" /></div>
             <div class="form-group">
                 <label>Target Trimester (Optional)</label>
-                <select class="form-control" wire:model="trimester_id">
+                <select class="form-control" wire:model.live="trimester_id">
                     <option value="">-- No Trimester --</option>
                     @foreach($trimesters as $t)<option value="{{ $t->id }}">Trimester {{ $t->trimester }}</option>@endforeach
                 </select>
             </div>
             <div class="row">
-                <div class="col-6"><div class="form-group"><label>Start Week</label><input type="number" class="form-control" wire:model="target_week_start"></div></div>
-                <div class="col-6"><div class="form-group"><label>End Week</label><input type="number" class="form-control" wire:model="target_week_end"></div></div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <label>Start Week</label>
+                        <select class="form-control" wire:model="target_week_start">
+                            @foreach($weeks as $w)
+                                <option value="{{ $w->week }}">Week {{ $w->week }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error for="target_week_start" />
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <label>End Week</label>
+                        <select class="form-control" wire:model="target_week_end">
+                            @foreach($weeks as $w)
+                                <option value="{{ $w->week }}">Week {{ $w->week }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error for="target_week_end" />
+                    </div>
+                </div>
             </div>
             <div class="row">
                 <div class="col-6">
