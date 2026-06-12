@@ -56,7 +56,7 @@
         <footer class="main-footer">
             <!-- To the right -->
             <div class="float-right d-none d-sm-inline">
-                Dev by <span><a href="https://micromek.net">EJ</a></span>
+                {{-- Dev by <span><a href="https://micromek.net">EJ</a></span> --}}
             </div>
             <!-- Default to the left -->
             <strong>Copyright &copy; 2014-2021 <a href="https://micromek.net">Micromek</a>.</strong> All rights
