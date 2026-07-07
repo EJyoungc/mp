@@ -294,75 +294,96 @@
                                 <div class="col-md-3 form-group">
                                     <label>Deliveries</label>
                                     <input type="number" class="form-control" wire:model="deliveries">
+
                                 </div>
                                 <div class="col-md-3 form-group">
                                     <label>Abortions</label>
                                     <input type="number" class="form-control" wire:model="abortions">
+                                     @error('number') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                                 <div class="col-md-3 form-group">
                                     <label>Still Births</label>
                                     <select class="form-control" wire:model="stillBirths">
+                                        <option value="">Select</option>
                                         <option value="No">No</option>
                                         <option value="Yes">Yes</option>
                                     </select>
+                                     @error('stillBirths') <small class="text-danger">{{ $message }}</small> @enderror
+
                                 </div>
                                 <div class="col-md-3 form-group">
                                     <label>Multiple</label>
                                     <select class="form-control" wire:model="multiple">
+                                        <option value="">Select</option>
                                         <option value="No">No</option>
                                         <option value="Yes">Yes</option>
                                     </select>
+                                     @error('multiple') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-4 form-group small">
                                     <label>Leg/Spine Deformity</label>
                                     <select class="form-control form-control-sm" wire:model="legOrSpine">
+                                        <option value="">Select</option>
                                         <option value="No">No</option>
                                         <option value="Yes">Yes</option>
                                     </select>
+                                     @error('legOrSpine') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                                 <div class="col-md-4 form-group small">
                                     <label>Other Deformity</label>
                                     <select class="form-control form-control-sm" wire:model="deformity">
+                                        <option value="">Select</option>
                                         <option value="No">No</option>
                                         <option value="Yes">Yes</option>
                                     </select>
+                                     @error('deformity') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                                 <div class="col-md-4 form-group small">
                                     <label>C-Section History</label>
                                     <select class="form-control form-control-sm" wire:model="cSection">
+                                        <option value="">Select</option>
                                         <option value="No">No</option>
                                         <option value="Yes">Yes</option>
                                     </select>
+                                     @error('cSection') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                                 <div class="col-md-4 form-group small">
                                     <label>Vacuum Extraction</label>
                                     <select class="form-control form-control-sm" wire:model="vacum">
+                                        <option value="">Select</option>
                                         <option value="No">No</option>
                                         <option value="Yes">Yes</option>
                                     </select>
+                                     @error('vacum') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                                 <div class="col-md-4 form-group small">
                                     <label>Tuberculosis</label>
                                     <select class="form-control form-control-sm" wire:model="tuberculosis">
+                                        <option value="">Select</option>
                                         <option value="No">No</option>
                                         <option value="Yes">Yes</option>
                                     </select>
+                                     @error('tuberculosis') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                                 <div class="col-md-4 form-group small">
                                     <label>Asthma</label>
                                     <select class="form-control form-control-sm" wire:model="asthma">
+                                        <option value="">Select</option>
                                         <option value="No">No</option>
                                         <option value="Yes">Yes</option>
                                     </select>
+                                     @error('asthma') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                                 <div class="col-md-12 form-group small">
                                     <label>Menstrual Cycle</label>
                                     <select class="form-control form-control-sm" wire:model="menstrualCycle">
+                                        <option value="">Select</option>
                                         <option value="Regular">Regular</option>
                                         <option value="Irregular">Irregular</option>
                                     </select>
+                                     @error('menstrualCycle') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                             </div>
                         </div>
