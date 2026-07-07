@@ -106,7 +106,7 @@
                                                 <button wire:click="edit({{ $mother->id }})" class="btn btn-white btn-sm px-3" title="Edit">
                                                     <i class="fas fa-edit text-info"></i>
                                                 </button>
-                                                <button wire:click="delete({{ $mother->id }})" 
+                                                <button wire:click="delete({{ $mother->id }})"
                                                         wire:confirm="Are you sure you want to delete this mother record? This will also remove her pregnancy history."
                                                         class="btn btn-white btn-sm px-3" title="Delete">
                                                     <i class="fas fa-trash text-danger"></i>
@@ -257,6 +257,7 @@
                                 <div class="col-md-6 form-group">
                                     <label>Email Address</label>
                                     <input type="email" class="form-control" wire:model="email" placeholder="Optional">
+                                    @error('email') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label>Next of Kin <span class="text-danger">*</span></label>
