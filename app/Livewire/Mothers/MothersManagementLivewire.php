@@ -263,6 +263,7 @@ class MothersManagementLivewire extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
             'phone' => 'required|string|max:20',
             'date_of_birth' => 'required|date',
             'marital_status' => 'required',
