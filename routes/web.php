@@ -10,6 +10,7 @@ use App\Livewire\Message\MessagesHistoryLivewire;
 use App\Livewire\Mothers\MotherLivewire;
 use App\Livewire\Mothers\MotherSessionHistoryLivewire;
 use App\Livewire\Mothers\MothersManagementLivewire;
+use App\Livewire\Organizations\OrganizationProfileLivewire;
 use App\Livewire\Organizations\OrganizationsLivewire;
 use App\Livewire\Organizations\OrganizationUserCheckLivewire;
 use App\Livewire\Organizations\OrganizationUsersLivewire;
@@ -44,6 +45,7 @@ Route::middleware([
         Route::middleware(['notPharmacyAdmin'])->group(function () {
             Route::get('/mothers', MothersManagementLivewire::class)->name('mothers');
             Route::get('/organizations', OrganizationsLivewire::class)->name('organizations');
+            Route::get('/organizations/{id}/profile', OrganizationProfileLivewire::class)->name('organizations.profile');
             Route::get('/organizations/users/{id}', OrganizationUsersLivewire::class)->name('organizations.users');
 
             Route::get('mothers/{mother_id}', MotherLivewire::class)->name('mothers.show');

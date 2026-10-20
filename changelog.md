@@ -2,6 +2,25 @@
 
 All notable changes to the MaaSMS project will be documented in this file.
 
+## [1.9.0] - 2026-10-20
+### Added
+- **Organization Profile Dashboard**:
+  - Implemented OrganizationProfileLivewire component and view (/organizations/{id}/profile) providing a dedicated dashboard for organization details.
+  - Added hero profile card with facility classification (Clinic vs Pharmacy), address, district/area, contact info, and owner metadata.
+  - Added metric cards displaying counts for Total Staff, Registered Mothers, Active Tips / Ads, and Pending Verifications.
+  - Added tabbed layout for Staff & Members, Registered Mothers, and Overview & Activity with live search, role filters, verification filters, and pagination.
+  - Added inline actions for System Admins and Org Owners to approve or decline pending member verifications.
+- **Enhanced Organizations Directory UI**:
+  - Redesigned OrganizationsLivewire with AdminLTE card styling, top summary statistics (Total Organizations, Clinics, Pharmacies, Mothers), and responsive table.
+  - Added real-time search across organization name, contact details, district, and area.
+  - Added category filtering (Healthcare vs Pharmacy) and district filtering with pagination.
+  - Updated the View action button to open the new Organization Profile dashboard.
+- **Safe Cascading Deletion with Confirmation**:
+  - Added a delete confirmation modal in OrganizationsLivewire with explicit warning about cascading removal of related records.
+  - Implemented model-level cascading deletion in Organization::booted() and wrapped Livewire delete actions in database transactions to cleanly purge all related staff users, mothers, medical histories, message logs, tips, advertisements, ad delivery histories, and invitations across all tables.
+- **Test Coverage**:
+  - Added OrganizationManagementAndProfileTest covering directory search/filter, profile dashboard navigation, staff/mothers tabs, and complete cascading deletion verification.
+
 ## [1.8.0] - 2026-06-02
 ### Added
 - **Ad Frequency Scheduling**:
