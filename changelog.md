@@ -2,6 +2,19 @@
 
 All notable changes to the MaaSMS project will be documented in this file.
 
+## [1.12.0] - 2026-10-21
+### Added
+- **Comprehensive Mother Profile & Clinical Dashboard**:
+  - Completely redesigned `MotherLivewire` and view with an appealing AdminLTE layout, breadcrumbs, and maternal hero card.
+  - Added real-time pregnancy tracker with gestational age calculation (weeks and days), trimester breakdown, Estimated Due Date (EDD) countdown, and a 40-week visual progress bar.
+  - Implemented multi-session/infant management: full CRUD for infant sequence and LMP records, automatic sequence calculation, and clean session deletion with confirmation modal.
+  - Added dedicated **Messages Received** section with live search, trimester filtering, delivery status filtering, message type toggle (Health Tips vs Targeted Pharmacy Ads), and an interactive SMS inspector modal displaying formatted gateway payload data.
+  - Added quick **Direct SMS Dispatch** modal allowing doctors and clinical staff to send ad-hoc SMS messages directly to mothers with real-time character count and delivery tracking.
+  - Added quick SMS resend action for failed or unconfirmed health tips.
+  - Added detailed clinical & socio-demographic profile tab covering demographics, anthropometric measurements, obstetric risk factors, and chronic medical conditions.
+- **Automated Feature Tests**:
+  - Created `MotherProfileAndDetailsTest` with 5 Pest test cases covering profile rendering, active pregnancy calculations, session CRUD, messages section filtering, custom SMS dispatch, and modal cancel convention compliance.
+
 ## [1.11.0] - 2026-10-21
 ### Added
 - **Districts & Areas Management Dashboard (System Admin)**:
