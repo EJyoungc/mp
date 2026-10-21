@@ -1,5 +1,6 @@
 <?php
 
+use App\Helper\StandardData;
 use App\Livewire\Organizations\OrganizationProfileLivewire;
 use App\Livewire\Organizations\OrganizationsLivewire;
 use App\Mail\UserCredentialsMail;
@@ -110,6 +111,17 @@ it('renders organization profile dashboard with details, cards, staff and mother
         ->set('activeTab', 'mothers')
         ->assertSee('Mary Phiri')
         ->set('search', 'Mary')
+        ->assertSee('Mary Phiri');
+
+    // Verify navigating to mother details from org profile works with both encrypted hash and raw ID
+    actingAs($this->systemAdmin)
+        ->get(route('mothers.show', StandardData::encrypt($mother->id)))
+        ->assertOk()
+        ->assertSee('Mary Phiri');
+
+    actingAs($this->systemAdmin)
+        ->get(route('mothers.show', $mother->id))
+        ->assertOk()
         ->assertSee('Mary Phiri');
 });
 

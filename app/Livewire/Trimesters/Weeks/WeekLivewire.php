@@ -273,6 +273,7 @@ class WeekLivewire extends Component
             'time',
             'tip_id',
         ]);
+        $this->cancelBulk();
     }
 
     #[Computed]

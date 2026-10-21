@@ -114,6 +114,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('districts.areas') }}" class="nav-link {{ request()->routeIs('districts.areas') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-map-marked-alt"></i>
+                                <p>Districts & Areas</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('settings') }}" class="nav-link">
                                 <i class="nav-icon fas fa-cog"></i>
                                 <p>Settings</p>

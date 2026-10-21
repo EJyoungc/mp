@@ -268,24 +268,38 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="district_id">District <span class="text-danger">*</span></label>
-                                <select wire:model.live="district_id" class="form-control">
-                                    <option value="">Select District</option>
-                                    @foreach($districts as $district)
-                                        <option value="{{ $district->id }}">{{ $district->name }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="input-group">
+                                    <select wire:model.live="district_id" class="form-control">
+                                        <option value="">Select District</option>
+                                        @foreach($districts as $district)
+                                            <option value="{{ $district->id }}">{{ $district->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-navy" type="button" wire:click="addDistrict" title="Add New District">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
                                 <x-input-error for="district_id" />
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="area_id">Area <span class="text-danger">*</span></label>
-                                <select wire:model="area_id" class="form-control" @disabled(!$district_id)>
-                                    <option value="">Select Area</option>
-                                    @foreach($areas as $area)
-                                        <option value="{{ $area->id }}">{{ $area->name }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="input-group">
+                                    <select wire:model="area_id" class="form-control" @disabled(!$district_id)>
+                                        <option value="">Select Area</option>
+                                        @foreach($areas as $area)
+                                            <option value="{{ $area->id }}">{{ $area->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-navy" type="button" wire:click="addArea" @disabled(!$district_id) title="Add New Area">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
                                 <x-input-error for="area_id" />
                             </div>
                         </div>
@@ -420,6 +434,40 @@
                         </div>
                     </div>
                 @endif
+            </x-modal>
+
+            <!-- Quick Add District Modal -->
+            <x-modal title="Add New District" status="{{ $districtModal }}">
+                <form wire:submit.prevent="storeDistrict">
+                    <div class="form-group">
+                        <label>District Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" wire:model="new_district_name" placeholder="Enter district name">
+                        <x-input-error for="new_district_name" />
+                    </div>
+                    <div class="modal-footer px-0 pb-0">
+                        <button type="button" class="btn btn-secondary" wire:click="$set('districtModal', false)">Cancel</button>
+                        <button type="submit" class="btn btn-navy shadow-sm px-4">Save District</button>
+                    </div>
+                </form>
+            </x-modal>
+
+            <!-- Quick Add Area Modal -->
+            <x-modal title="Add New Area" status="{{ $areaModal }}">
+                <form wire:submit.prevent="storeArea">
+                    <div class="form-group">
+                        <label>District</label>
+                        <input type="text" class="form-control" value="{{ $districts->find($district_id)->name ?? '' }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Area Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" wire:model="new_area_name" placeholder="Enter area name">
+                        <x-input-error for="new_area_name" />
+                    </div>
+                    <div class="modal-footer px-0 pb-0">
+                        <button type="button" class="btn btn-secondary" wire:click="$set('areaModal', false)">Cancel</button>
+                        <button type="submit" class="btn btn-navy shadow-sm px-4">Save Area</button>
+                    </div>
+                </form>
             </x-modal>
 
             <!-- Delete Confirmation Modal -->

@@ -2,6 +2,25 @@
 
 All notable changes to the MaaSMS project will be documented in this file.
 
+## [1.11.0] - 2026-10-21
+### Added
+- **Districts & Areas Management Dashboard (System Admin)**:
+  - Created `DistrictsAreasLivewire` component and view (`/districts-areas`) restricted to system administrators.
+  - Added summary metric cards for Total Districts, Total Areas, Organizations Mapped, and Users/Mothers Mapped.
+  - Implemented tabbed navigation with full CRUD for both Districts and Areas, including live name search, district dropdown filtering, and separate pagination.
+  - Added cascading delete confirmation modals displaying linked counts and safety warnings.
+  - Added quick shortcuts: 'Add Area' directly from a district row, and 'View Areas' to immediately switch and filter the Areas tab.
+- **On-the-Fly Quick Add District & Area in Forms**:
+  - Added inline '+' quick-action buttons and dedicated creation modals for adding new Districts across all major forms:
+    - `MothersManagementLivewire` (Mothers registry)
+    - `OrganizationsLivewire` (Organization registration/edit - added both Quick Add District and Quick Add Area)
+    - `UserCreateLivewire` & `UserEditLivewire` (via `components/inputs/users/mother.blade.php`)
+  - Newly created districts and areas are automatically selected upon creation, enabling seamless workflow without leaving the form.
+- **Sidebar Navigation**:
+  - Added 'Districts & Areas' navigation item under the System Admin menu with active state tracking.
+- **Automated Feature Tests**:
+  - Added `DistrictsAndAreasManagementTest` with 7 Pest test cases covering access control, District/Area CRUD, search/filtering, and on-the-fly district creation within forms.
+
 ## [1.10.0] - 2026-10-21
 ### Added
 - **Organization User Provisioning & Roles Assignment**:

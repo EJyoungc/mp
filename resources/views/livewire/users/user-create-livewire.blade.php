@@ -75,6 +75,21 @@
         .rounded-pill { border-radius: 50rem !important; }
     </style>
 
+    <!-- Modal for Adding New District -->
+    <x-modal title="Add New District" status="{{ $districtModal }}">
+        <form wire:submit.prevent="storeDistrict">
+            <div class="form-group">
+                <label>District Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" wire:model="new_district_name" placeholder="Enter district name">
+                @error('new_district_name') <small class="text-danger">{{ $message }}</small> @enderror
+            </div>
+            <div class="modal-footer px-0 pb-0">
+                <button type="button" class="btn btn-secondary" wire:click="$set('districtModal', false)">Cancel</button>
+                <button type="submit" class="btn btn-navy shadow-sm px-4">Save District</button>
+            </div>
+        </form>
+    </x-modal>
+
     <!-- Modal for Adding New Area -->
     <x-modal title="Add New Area" status="{{ $areaModal }}">
         <form wire:submit.prevent="storeArea">

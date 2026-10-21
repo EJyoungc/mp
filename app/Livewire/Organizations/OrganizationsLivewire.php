@@ -56,6 +56,15 @@ class OrganizationsLivewire extends Component
 
     public $is_pharmacy = false;
 
+    // Quick Add District and Area properties
+    public $districtModal = false;
+
+    public $new_district_name = '';
+
+    public $areaModal = false;
+
+    public $new_area_name = '';
+
     // Optional Lead Administrator Creation fields
     public $create_admin = false;
 
@@ -94,6 +103,54 @@ class OrganizationsLivewire extends Component
     public function generateAdminPassword(): void
     {
         $this->admin_password = Str::random(10);
+    }
+
+    public function addDistrict(): void
+    {
+        $this->new_district_name = '';
+        $this->districtModal = true;
+    }
+
+    public function storeDistrict(): void
+    {
+        $this->validate([
+            'new_district_name' => 'required|string|max:255|unique:districts,name',
+        ]);
+
+        $district = District::create([
+            'name' => trim($this->new_district_name),
+        ]);
+
+        $this->district_id = $district->id;
+        $this->area_id = null;
+        $this->districtModal = false;
+        $this->alert('success', "District '{$district->name}' added successfully.");
+    }
+
+    public function addArea(): void
+    {
+        $this->validate([
+            'district_id' => 'required|exists:districts,id',
+        ]);
+        $this->new_area_name = '';
+        $this->areaModal = true;
+    }
+
+    public function storeArea(): void
+    {
+        $this->validate([
+            'district_id' => 'required|exists:districts,id',
+            'new_area_name' => 'required|string|max:255',
+        ]);
+
+        $area = Area::create([
+            'district_id' => $this->district_id,
+            'name' => trim($this->new_area_name),
+        ]);
+
+        $this->area_id = $area->id;
+        $this->areaModal = false;
+        $this->alert('success', "Area '{$area->name}' added successfully.");
     }
 
     public function create($id = null): void
@@ -332,6 +389,10 @@ class OrganizationsLivewire extends Component
             'admin_email',
             'admin_phone',
             'admin_password',
+            'districtModal',
+            'new_district_name',
+            'areaModal',
+            'new_area_name',
         ]);
 
         if (! $keepCredentials) {

@@ -87,14 +87,21 @@
 
 <div class="form-group">
     <label for="district_id">District</label>
-    <select wire:model.live="district_id" class="form-control">
-        <option value="">Select District</option>
-        @forelse ($districts as $district)
-            <option value="{{ $district->id }}">{{ $district->name }}</option>
-            @empty
-            <option value="">No districts available</option>
-        @endforelse
-    </select>
+    <div class="input-group">
+        <select wire:model.live="district_id" class="form-control">
+            <option value="">Select District</option>
+            @forelse ($districts as $district)
+                <option value="{{ $district->id }}">{{ $district->name }}</option>
+                @empty
+                <option value="">No districts available</option>
+            @endforelse
+        </select>
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" wire:click="addDistrict" title="Add New District">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
     <x-input-error for="district_id" />
 </div>
 

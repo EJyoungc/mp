@@ -59,6 +59,10 @@ class UserCreateLivewire extends Component
 
     public $new_area_name;
 
+    public $districtModal = false;
+
+    public $new_district_name = '';
+
     public $traditional_authority;
 
     public $last_normal_menstrual_period_date;
@@ -120,6 +124,28 @@ class UserCreateLivewire extends Component
     public function updatedDistrictId()
     {
         $this->area_id = null;
+    }
+
+    public function addDistrict()
+    {
+        $this->new_district_name = '';
+        $this->districtModal = true;
+    }
+
+    public function storeDistrict()
+    {
+        $this->validate([
+            'new_district_name' => 'required|string|max:255|unique:districts,name',
+        ]);
+
+        $district = District::create([
+            'name' => trim($this->new_district_name),
+        ]);
+
+        $this->district_id = $district->id;
+        $this->area_id = null;
+        $this->districtModal = false;
+        $this->alert('success', "District '{$district->name}' added successfully.");
     }
 
     public function addArea()
@@ -334,6 +360,9 @@ class UserCreateLivewire extends Component
         $this->reset([
             'modal',
             'areaModal',
+            'districtModal',
+            'new_district_name',
+            'new_area_name',
         ]);
     }
 

@@ -159,6 +159,21 @@ class OrganizationProfileLivewire extends Component
         $this->memberModal = true;
     }
 
+    public function cancel()
+    {
+        $this->reset([
+            'memberModal',
+            'editingMemberId',
+            'member_name',
+            'member_email',
+            'member_phone',
+            'member_role_id',
+            'member_is_active',
+            'member_password',
+            'send_credentials_email',
+        ]);
+    }
+
     public function saveMember(): void
     {
         $user = auth()->user();

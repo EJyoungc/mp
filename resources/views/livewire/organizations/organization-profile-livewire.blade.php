@@ -404,7 +404,7 @@
                                                     <small class="text-muted">{{ $mother->created_at->format('M d, Y') }}</small>
                                                 </td>
                                                 <td class="text-right">
-                                                    <a href="{{ route('mothers.show', $mother->id) }}" class="btn btn-sm btn-purple shadow-sm" title="View Mother Details">
+                                                    <a href="{{ route('mothers.show', \App\Helper\StandardData::encrypt($mother->id)) }}" class="btn btn-sm btn-purple shadow-sm" title="View Mother Details">
                                                         <i class="fas fa-user-circle mr-1"></i> View Profile
                                                     </a>
                                                 </td>

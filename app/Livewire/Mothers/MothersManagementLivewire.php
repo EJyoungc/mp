@@ -35,6 +35,10 @@ class MothersManagementLivewire extends Component
 
     public $new_area_name;
 
+    public $districtModal = false;
+
+    public $new_district_name = '';
+
     // Form fields - Personal & Contact
     public $mother_id;
 
@@ -181,6 +185,28 @@ class MothersManagementLivewire extends Component
         $this->selectAll = false;
         $this->reassignModal = false;
         $this->bulkOrganizationId = null;
+    }
+
+    public function addDistrict()
+    {
+        $this->new_district_name = '';
+        $this->districtModal = true;
+    }
+
+    public function storeDistrict()
+    {
+        $this->validate([
+            'new_district_name' => 'required|string|max:255|unique:districts,name',
+        ]);
+
+        $district = District::create([
+            'name' => trim($this->new_district_name),
+        ]);
+
+        $this->district_id = $district->id;
+        $this->area_id = null;
+        $this->districtModal = false;
+        $this->alert('success', "District '{$district->name}' added successfully.");
     }
 
     public function addArea()
@@ -374,6 +400,10 @@ class MothersManagementLivewire extends Component
         $this->resetForm();
         $this->modal = false;
         $this->areaModal = false;
+        $this->districtModal = false;
+        $this->reassignModal = false;
+        $this->new_district_name = '';
+        $this->new_area_name = '';
     }
 
     private function resetForm()

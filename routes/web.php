@@ -6,6 +6,7 @@ use App\Livewire\Alerts\WaitingApprovalLivewire;
 use App\Livewire\Dashboard\DashboardLivewire;
 use App\Livewire\Days\DayRangesLivewire;
 use App\Livewire\Days\DaysLivewire;
+use App\Livewire\Districts\DistrictsAreasLivewire;
 use App\Livewire\Message\MessagesHistoryLivewire;
 use App\Livewire\Mothers\MotherLivewire;
 use App\Livewire\Mothers\MotherSessionHistoryLivewire;
@@ -64,6 +65,7 @@ Route::middleware([
         Route::get('/test', TestLivewire::class)->name('test');
         Route::get('/messages-histories', MessagesHistoryLivewire::class)->name('messages.histories');
         Route::get('/ad-histories', AdHistoriesLivewire::class)->name('ad.histories');
+        Route::get('/districts-areas', DistrictsAreasLivewire::class)->name('districts.areas')->middleware('System');
         Route::get('/settings', SettingsLivewire::class)->name('settings')->middleware('System');
     });
 
