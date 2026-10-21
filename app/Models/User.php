@@ -60,6 +60,7 @@ class User extends Authenticatable
         'current_team_id',
         'district_id',
         'area_id',
+        'is_active',
     ];
 
     /**

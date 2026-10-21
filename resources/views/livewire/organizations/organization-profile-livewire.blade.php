@@ -195,8 +195,8 @@
                     @if($activeTab === 'members')
                         <div>
                             <!-- Search & Filter Controls -->
-                            <div class="row mb-3">
-                                <div class="col-md-6 mb-2">
+                            <div class="row mb-3 align-items-center">
+                                <div class="col-md-5 mb-2">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
@@ -209,7 +209,7 @@
                                         @endif
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-sm-6 mb-2">
+                                <div class="col-md-2 col-sm-6 mb-2">
                                     <select wire:model.live="role_filter" class="form-control">
                                         <option value="">-- All Roles --</option>
                                         @foreach($roles as $r)
@@ -217,13 +217,20 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-3 col-sm-6 mb-2">
+                                <div class="col-md-2 col-sm-6 mb-2">
                                     <select wire:model.live="verification_filter" class="form-control">
                                         <option value="">-- All Statuses --</option>
                                         <option value="verified">Verified</option>
                                         <option value="pending">Pending</option>
                                         <option value="declined">Declined</option>
                                     </select>
+                                </div>
+                                <div class="col-md-3 mb-2 text-md-right">
+                                    @if(auth()->user()->isSystemAdmin() || $organization->owner_id === auth()->id() || auth()->user()->isOrgAdmin())
+                                        <button wire:click="createMember" class="btn btn-primary shadow-sm font-weight-bold">
+                                            <i class="fas fa-user-plus mr-1"></i> Add Staff Member
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
 
@@ -296,9 +303,9 @@
                                                             <i class="fas fa-times"></i>
                                                         </button>
                                                     @endif
-                                                    <a href="{{ route('users.edit', [$member->role->name ?? 'practitioner', $member->id]) }}" class="btn btn-sm btn-outline-info shadow-sm" title="Edit User">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
+                                                    <button wire:click.prevent="editMember({{ $member->id }})" class="btn btn-sm btn-outline-info shadow-sm" title="Edit Staff Member">
+                                                        <i class="fas fa-edit mr-1"></i> Edit
+                                                    </button>
                                                 </td>
                                             </tr>
                                         @empty
@@ -544,6 +551,142 @@
 
         </div>
     </div>
+
+    <!-- Create / Edit Staff Member Modal -->
+    <x-modal status="{{ $memberModal }}" title="{{ $editingMemberId ? 'Edit Staff Member' : 'Add New Staff Member' }}">
+        <form wire:submit.prevent="saveMember">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" wire:model="member_name" placeholder="Enter full name">
+                        <x-input-error for="member_name" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Email Address <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" wire:model="member_email" placeholder="jane@facility.com">
+                        <x-input-error for="member_email" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" class="form-control" wire:model="member_phone" placeholder="+265 999 000 000">
+                        <x-input-error for="member_phone" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Assigned Role <span class="text-danger">*</span></label>
+                        <select wire:model="member_role_id" class="form-control">
+                            <option value="">-- Select Role --</option>
+                            @foreach($roles as $r)
+                                <option value="{{ $r->id }}">{{ ucfirst($r->name) }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error for="member_role_id" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="mb-0">
+                        {{ $editingMemberId ? 'Change Password (Leave blank to keep current)' : 'Password' }}
+                    </label>
+                    <button type="button" class="btn btn-xs btn-outline-secondary" wire:click="generateMemberPassword">
+                        <i class="fas fa-key mr-1"></i> Auto-Generate
+                    </button>
+                </div>
+                <input type="text" class="form-control" wire:model="member_password" placeholder="{{ $editingMemberId ? 'Enter new password if changing' : 'Leave blank to auto-generate' }}">
+                <x-input-error for="member_password" />
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="member_is_active_switch" wire:model="member_is_active">
+                            <label class="custom-control-label" for="member_is_active_switch">
+                                Account is <strong>Active</strong>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="send_credentials_email_checkbox" wire:model="send_credentials_email">
+                            <label class="custom-control-label" for="send_credentials_email_checkbox">
+                                <i class="fas fa-envelope mr-1 text-primary"></i> Send Welcome Email with Credentials
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                <button type="button" class="btn btn-secondary mr-2" wire:click="cancelMember">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save mr-1"></i> {{ $editingMemberId ? 'Update Member' : 'Save &amp; Create Member' }} <x-spinner for="saveMember" />
+                </button>
+            </div>
+        </form>
+    </x-modal>
+
+    <!-- User Credentials Generated Modal -->
+    <x-modal status="{{ $credentialsModal }}" title="User Credentials Generated">
+        @if($createdUserCredentials)
+            <div class="p-2">
+                <div class="alert alert-success d-flex align-items-center mb-3">
+                    <i class="fas fa-check-circle fa-2x mr-3"></i>
+                    <div>
+                        <h5 class="mb-1 font-weight-bold">Member Ready &amp; Credentials Generated!</h5>
+                        <div>Account details have been prepared for <strong>{{ $createdUserCredentials['name'] }}</strong>.</div>
+                    </div>
+                </div>
+
+                <div class="card bg-light border p-3 mb-3">
+                    <div class="row mb-2">
+                        <div class="col-sm-4 font-weight-bold text-muted">User Name:</div>
+                        <div class="col-sm-8 text-navy font-weight-bold">{{ $createdUserCredentials['name'] }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 font-weight-bold text-muted">Organization:</div>
+                        <div class="col-sm-8">{{ $createdUserCredentials['org_name'] }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 font-weight-bold text-muted">Role:</div>
+                        <div class="col-sm-8"><span class="badge badge-primary px-2 py-1">{{ $createdUserCredentials['role'] }}</span></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 font-weight-bold text-muted">Login Email:</div>
+                        <div class="col-sm-8"><code>{{ $createdUserCredentials['email'] }}</code></div>
+                    </div>
+                    <div class="row mb-0 align-items-center">
+                        <div class="col-sm-4 font-weight-bold text-muted">Generated Password:</div>
+                        <div class="col-sm-8">
+                            <span class="badge badge-warning p-2 text-dark font-weight-bold" style="font-size: 15px; letter-spacing: 1px;">
+                                {{ $createdUserCredentials['password'] }}
+                            </span>
+                            <small class="text-muted d-block mt-1">You can copy and securely share this password directly with the staff member.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-primary" wire:click="closeCredentialsModal">
+                        <i class="fas fa-check mr-1"></i> Done
+                    </button>
+                </div>
+            </div>
+        @endif
+    </x-modal>
 
     <style>
         .avatar-lg {

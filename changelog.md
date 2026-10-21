@@ -2,6 +2,21 @@
 
 All notable changes to the MaaSMS project will be documented in this file.
 
+## [1.10.0] - 2026-10-21
+### Added
+- **Organization User Provisioning & Roles Assignment**:
+  - Implemented optional 'Assign Initial Administrator' toggle and form fields inside the organization creation modal in OrganizationsLivewire, automatically creating the lead administrator, assigning the admin role and organization ownership, auto-generating secure credentials, and verifying the user.
+  - Added dedicated 'Add Staff Member' modal within the OrganizationProfileLivewire dashboard under the Staff & Members tab, allowing System Admins and Org Admins to create new staff members (Admins, Doctors, Practitioners) with custom or auto-generated passwords.
+  - Added full inline editing of existing staff members (name, email, phone, role, active status, optional password reset) directly from the Staff & Members table.
+  - Enforced pharmacy restriction: prevent assigning clinical roles (e.g. Doctor) to staff belonging to a pharmacy organization.
+- **Custom User Credentials Dispatch & In-App Viewer**:
+  - Created UserCredentialsMail Mailable and responsive HTML/Markdown email template delivering account login instructions, email, role, organization name, and clear temporary password.
+  - Implemented in-app credentials modal with convenient 'Copy' buttons in both OrganizationsLivewire and OrganizationProfileLivewire, guaranteeing instant access to login credentials even if email delivery is delayed or queued.
+- **Model & Mass-Assignment Enhancements**:
+  - Added is_active to fillable on the User model to allow proper status updates across admin interfaces.
+- **Automated Feature Tests**:
+  - Expanded OrganizationManagementAndProfileTest with comprehensive Pest tests covering initial administrator creation during org registration, staff addition/editing from profile dashboard, email credential dispatch, and pharmacy clinical role restriction validation.
+
 ## [1.9.0] - 2026-10-20
 ### Added
 - **Organization Profile Dashboard**:

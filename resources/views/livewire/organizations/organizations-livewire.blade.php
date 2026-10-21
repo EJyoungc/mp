@@ -309,6 +309,61 @@
                         <x-input-error for="description" />
                     </div>
 
+                    @if(empty($organization->id))
+                        <hr class="my-4">
+                        <div class="card card-outline card-navy bg-light mb-3">
+                            <div class="card-body p-3">
+                                <div class="custom-control custom-switch mb-2">
+                                    <input type="checkbox" class="custom-control-input" id="create_admin_switch" wire:model.live="create_admin">
+                                    <label class="custom-control-label font-weight-bold text-navy" for="create_admin_switch">
+                                        <i class="fas fa-user-shield mr-1"></i> Assign Initial Administrator for this Organization
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block mb-3">
+                                    Automatically creates the lead administrator account, generates login credentials, and emails them immediately.
+                                </small>
+
+                                @if($create_admin)
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Admin Full Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" wire:model="admin_name" placeholder="e.g. Dr. Jane Doe">
+                                                <x-input-error for="admin_name" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Admin Email Address <span class="text-danger">*</span></label>
+                                                <input type="email" class="form-control" wire:model="admin_email" placeholder="admin@facility.com">
+                                                <x-input-error for="admin_email" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Phone Number</label>
+                                                <input type="text" class="form-control" wire:model="admin_phone" placeholder="+265 999 000 000">
+                                                <x-input-error for="admin_phone" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <label class="mb-0">Password <small class="text-muted">(Optional)</small></label>
+                                                    <button type="button" class="btn btn-xs btn-outline-secondary" wire:click="generateAdminPassword">
+                                                        <i class="fas fa-key mr-1"></i> Auto-Generate
+                                                    </button>
+                                                </div>
+                                                <input type="text" class="form-control" wire:model="admin_password" placeholder="Leave blank to auto-generate">
+                                                <x-input-error for="admin_password" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="d-flex justify-content-end gap-2 mt-4">
                         <button type="button" class="btn btn-secondary mr-2" wire:click="cancel">Cancel</button>
                         <button type="submit" class="btn btn-primary">
@@ -316,6 +371,55 @@
                         </button>
                     </div>
                 </form>
+            </x-modal>
+
+            <!-- User Credentials Generated Modal -->
+            <x-modal status="{{ $credentialsModal }}" title="User Credentials Generated">
+                @if($createdUserCredentials)
+                    <div class="p-2">
+                        <div class="alert alert-success d-flex align-items-center mb-3">
+                            <i class="fas fa-check-circle fa-2x mr-3"></i>
+                            <div>
+                                <h5 class="mb-1 font-weight-bold">Account Created &amp; Credentials Emailed!</h5>
+                                <div>A welcome email containing credentials was dispatched to <strong>{{ $createdUserCredentials['email'] }}</strong>.</div>
+                            </div>
+                        </div>
+
+                        <div class="card bg-light border p-3 mb-3">
+                            <div class="row mb-2">
+                                <div class="col-sm-4 font-weight-bold text-muted">User Name:</div>
+                                <div class="col-sm-8 text-navy font-weight-bold">{{ $createdUserCredentials['name'] }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-4 font-weight-bold text-muted">Organization:</div>
+                                <div class="col-sm-8">{{ $createdUserCredentials['org_name'] }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-4 font-weight-bold text-muted">Assigned Role:</div>
+                                <div class="col-sm-8"><span class="badge badge-primary px-2 py-1">{{ $createdUserCredentials['role'] }}</span></div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-4 font-weight-bold text-muted">Login Email:</div>
+                                <div class="col-sm-8"><code>{{ $createdUserCredentials['email'] }}</code></div>
+                            </div>
+                            <div class="row mb-0 align-items-center">
+                                <div class="col-sm-4 font-weight-bold text-muted">Generated Password:</div>
+                                <div class="col-sm-8">
+                                    <span class="badge badge-warning p-2 text-dark font-weight-bold" style="font-size: 15px; letter-spacing: 1px;">
+                                        {{ $createdUserCredentials['password'] }}
+                                    </span>
+                                    <small class="text-muted d-block mt-1">You can copy and securely share this password directly with the user.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-primary" wire:click="closeCredentialsModal">
+                                <i class="fas fa-check mr-1"></i> Done
+                            </button>
+                        </div>
+                    </div>
+                @endif
             </x-modal>
 
             <!-- Delete Confirmation Modal -->

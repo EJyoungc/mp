@@ -2,11 +2,17 @@
 
 namespace App\Livewire\Organizations;
 
+use App\Mail\UserCredentialsMail;
 use App\Models\Area;
 use App\Models\District;
 use App\Models\Organization;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -21,6 +27,10 @@ class OrganizationsLivewire extends Component
     public $modal = false;
 
     public $deleteModal = false;
+
+    public $credentialsModal = false;
+
+    public $createdUserCredentials = null;
 
     public $confirmingDeleteId = null;
 
@@ -46,6 +56,17 @@ class OrganizationsLivewire extends Component
 
     public $is_pharmacy = false;
 
+    // Optional Lead Administrator Creation fields
+    public $create_admin = false;
+
+    public $admin_name = '';
+
+    public $admin_email = '';
+
+    public $admin_phone = '';
+
+    public $admin_password = '';
+
     // Search and filter properties
     public $search = '';
 
@@ -70,6 +91,11 @@ class OrganizationsLivewire extends Component
         $this->resetPage();
     }
 
+    public function generateAdminPassword(): void
+    {
+        $this->admin_password = Str::random(10);
+    }
+
     public function create($id = null): void
     {
         $user = auth()->user();
@@ -91,6 +117,11 @@ class OrganizationsLivewire extends Component
                 'area_id',
                 'description',
                 'is_pharmacy',
+                'create_admin',
+                'admin_name',
+                'admin_email',
+                'admin_phone',
+                'admin_password',
             ]);
             $this->modal = true;
         } else {
@@ -112,6 +143,7 @@ class OrganizationsLivewire extends Component
             $this->area_id = $this->organization->area_id;
             $this->description = $this->organization->description;
             $this->is_pharmacy = (bool) $this->organization->is_pharmacy;
+            $this->create_admin = false;
             $this->modal = true;
         }
     }
@@ -119,7 +151,8 @@ class OrganizationsLivewire extends Component
     public function store(): void
     {
         $user = auth()->user();
-        $this->validate([
+
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
@@ -129,7 +162,16 @@ class OrganizationsLivewire extends Component
             'area_id' => 'required|exists:areas,id',
             'description' => 'nullable|string|max:500',
             'is_pharmacy' => 'boolean',
-        ]);
+        ];
+
+        if ($this->create_admin && empty($this->organization->id)) {
+            $rules['admin_name'] = 'required|string|max:255';
+            $rules['admin_email'] = 'required|email|max:255|unique:users,email';
+            $rules['admin_phone'] = 'nullable|string|max:20';
+            $rules['admin_password'] = 'nullable|string|min:6';
+        }
+
+        $this->validate($rules);
 
         if (empty($this->organization->id)) {
             // Only System Admin can create
@@ -139,21 +181,58 @@ class OrganizationsLivewire extends Component
                 return;
             }
 
-            Organization::create([
-                'name' => $this->name,
-                'email' => $this->email,
-                'phone' => $this->phone,
-                'website' => $this->website,
-                'address' => $this->address,
-                'district_id' => $this->district_id,
-                'area_id' => $this->area_id,
-                'description' => $this->description,
-                'is_pharmacy' => $this->is_pharmacy,
-                'owner_id' => $user->id,
-            ]);
+            DB::transaction(function () use ($user) {
+                $org = Organization::create([
+                    'name' => $this->name,
+                    'email' => $this->email,
+                    'phone' => $this->phone,
+                    'website' => $this->website,
+                    'address' => $this->address,
+                    'district_id' => $this->district_id,
+                    'area_id' => $this->area_id,
+                    'description' => $this->description,
+                    'is_pharmacy' => $this->is_pharmacy,
+                    'owner_id' => $user->id,
+                ]);
 
-            $this->alert('success', 'Organization created successfully');
-            $this->cancel();
+                if ($this->create_admin) {
+                    $plainPassword = ! empty($this->admin_password) ? $this->admin_password : Str::random(10);
+                    $adminRole = Role::firstOrCreate(['name' => 'admin']);
+
+                    $adminUser = User::create([
+                        'name' => $this->admin_name,
+                        'email' => $this->admin_email,
+                        'phone' => $this->admin_phone,
+                        'password' => Hash::make($plainPassword),
+                        'role_id' => $adminRole->id,
+                        'organization_id' => $org->id,
+                        'organization_verify' => 'verified',
+                        'is_active' => true,
+                    ]);
+
+                    $org->owner_id = $adminUser->id;
+                    $org->save();
+
+                    // Send credentials email
+                    try {
+                        Mail::to($adminUser->email)->send(new UserCredentialsMail($adminUser, $plainPassword, $org, $adminRole));
+                    } catch (\Exception $e) {
+                        Log::error('Failed to send welcome credentials email: '.$e->getMessage());
+                    }
+
+                    $this->createdUserCredentials = [
+                        'name' => $adminUser->name,
+                        'email' => $adminUser->email,
+                        'password' => $plainPassword,
+                        'role' => 'Administrator',
+                        'org_name' => $org->name,
+                    ];
+                    $this->credentialsModal = true;
+                }
+            });
+
+            $this->alert('success', 'Organization created successfully.');
+            $this->cancel(keepCredentials: true);
         } else {
             // Authorization check
             if (! $user->isSystemAdmin() && $this->organization->owner_id !== $user->id) {
@@ -213,7 +292,6 @@ class OrganizationsLivewire extends Component
         }
 
         DB::transaction(function () use ($org) {
-            // Organization::delete triggers booted deleting callback which cleans up all related tables
             $org->delete();
         });
 
@@ -226,7 +304,13 @@ class OrganizationsLivewire extends Component
         $this->area_id = null;
     }
 
-    public function cancel(): void
+    public function closeCredentialsModal(): void
+    {
+        $this->credentialsModal = false;
+        $this->createdUserCredentials = null;
+    }
+
+    public function cancel(bool $keepCredentials = false): void
     {
         $this->reset([
             'modal',
@@ -243,7 +327,17 @@ class OrganizationsLivewire extends Component
             'description',
             'organization',
             'is_pharmacy',
+            'create_admin',
+            'admin_name',
+            'admin_email',
+            'admin_phone',
+            'admin_password',
         ]);
+
+        if (! $keepCredentials) {
+            $this->credentialsModal = false;
+            $this->createdUserCredentials = null;
+        }
     }
 
     public function render()

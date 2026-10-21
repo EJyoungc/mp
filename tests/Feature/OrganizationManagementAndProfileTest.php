@@ -2,6 +2,7 @@
 
 use App\Livewire\Organizations\OrganizationProfileLivewire;
 use App\Livewire\Organizations\OrganizationsLivewire;
+use App\Mail\UserCredentialsMail;
 use App\Models\AdHistory;
 use App\Models\Area;
 use App\Models\Day;
@@ -17,6 +18,7 @@ use App\Models\Tip;
 use App\Models\Trimester;
 use App\Models\User;
 use App\Models\Week;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 
 use function Pest\Laravel\actingAs;
@@ -221,4 +223,128 @@ it('deletes an organization and cascades cleanly across all related tables', fun
     expect(PharmacyAd::find($ad->id))->toBeNull();
     expect(AdHistory::find($adHistory->id))->toBeNull();
     expect(Invitation::find($invitation->id))->toBeNull();
+});
+
+it('can create organization with an initial administrator and send credentials email', function () {
+    Mail::fake();
+
+    Livewire::actingAs($this->systemAdmin)
+        ->test(OrganizationsLivewire::class)
+        ->set('name', 'St Gabriel Clinic')
+        ->set('email', 'contact@stgabriel.com')
+        ->set('phone', '0888111222')
+        ->set('address', 'Area 10')
+        ->set('district_id', $this->district->id)
+        ->set('area_id', $this->area->id)
+        ->set('is_pharmacy', false)
+        ->set('create_admin', true)
+        ->set('admin_name', 'Dr. John Banda')
+        ->set('admin_email', 'john.banda@stgabriel.com')
+        ->set('admin_phone', '0999888777')
+        ->call('generateAdminPassword')
+        ->call('store')
+        ->assertHasNoErrors()
+        ->assertSet('credentialsModal', true);
+
+    $createdOrg = Organization::where('email', 'contact@stgabriel.com')->first();
+    expect($createdOrg)->not->toBeNull();
+
+    $adminUser = User::where('email', 'john.banda@stgabriel.com')->first();
+    expect($adminUser)->not->toBeNull();
+    expect($adminUser->name)->toBe('Dr. John Banda');
+    expect($adminUser->organization_id)->toBe($createdOrg->id);
+    expect($adminUser->role_id)->toBe($this->adminRole->id);
+    expect($adminUser->organization_verify)->toBe('verified');
+    expect($adminUser->is_active)->toBe(1);
+    expect($createdOrg->owner_id)->toBe($adminUser->id);
+
+    Mail::assertSent(UserCredentialsMail::class, function ($mail) use ($adminUser) {
+        return $mail->hasTo('john.banda@stgabriel.com') && $mail->user->id === $adminUser->id;
+    });
+});
+
+it('can add a new staff member and dispatch credentials email from organization profile', function () {
+    Mail::fake();
+
+    Livewire::actingAs($this->systemAdmin)
+        ->test(OrganizationProfileLivewire::class, ['id' => $this->organization->id])
+        ->call('createMember')
+        ->assertSet('memberModal', true)
+        ->set('member_name', 'Nurse Chimwemwe')
+        ->set('member_email', 'chimwemwe@healthcentre.com')
+        ->set('member_phone', '0999555444')
+        ->set('member_role_id', $this->practitionerRole->id)
+        ->set('member_is_active', true)
+        ->set('send_credentials_email', true)
+        ->call('generateMemberPassword')
+        ->call('saveMember')
+        ->assertHasNoErrors()
+        ->assertSet('memberModal', false)
+        ->assertSet('credentialsModal', true);
+
+    $newUser = User::where('email', 'chimwemwe@healthcentre.com')->first();
+    expect($newUser)->not->toBeNull();
+    expect($newUser->organization_id)->toBe($this->organization->id);
+    expect($newUser->role_id)->toBe($this->practitionerRole->id);
+    expect($newUser->organization_verify)->toBe('verified');
+    expect($newUser->is_active)->toBe(1);
+
+    Mail::assertSent(UserCredentialsMail::class, function ($mail) use ($newUser) {
+        return $mail->hasTo('chimwemwe@healthcentre.com') && $mail->user->id === $newUser->id;
+    });
+});
+
+it('can edit an existing staff member in organization profile', function () {
+    $staff = User::factory()->create([
+        'name' => 'Original Name',
+        'email' => 'staff.edit@healthcentre.com',
+        'phone' => '0999000111',
+        'role_id' => $this->practitionerRole->id,
+        'organization_id' => $this->organization->id,
+        'organization_verify' => 'verified',
+        'is_active' => true,
+    ]);
+
+    Livewire::actingAs($this->systemAdmin)
+        ->test(OrganizationProfileLivewire::class, ['id' => $this->organization->id])
+        ->call('editMember', $staff->id)
+        ->assertSet('memberModal', true)
+        ->assertSet('editingMemberId', $staff->id)
+        ->assertSet('member_name', 'Original Name')
+        ->set('member_name', 'Updated Name')
+        ->set('member_phone', '0999000222')
+        ->set('member_role_id', $this->doctorRole->id)
+        ->set('member_is_active', false)
+        ->call('saveMember')
+        ->assertHasNoErrors()
+        ->assertSet('memberModal', false);
+
+    $staff->refresh();
+    expect($staff->name)->toBe('Updated Name');
+    expect($staff->phone)->toBe('0999000222');
+    expect($staff->role_id)->toBe($this->doctorRole->id);
+    expect($staff->is_active)->toBe(0);
+});
+
+it('prevents assigning clinical roles like doctor to a pharmacy organization', function () {
+    $pharmacyOrg = Organization::create([
+        'name' => 'Community Pharmacy',
+        'email' => 'rx@pharmacy.com',
+        'phone' => '0999777888',
+        'address' => 'Market Street',
+        'district_id' => $this->district->id,
+        'area_id' => $this->area->id,
+        'is_pharmacy' => true,
+        'owner_id' => $this->systemAdmin->id,
+    ]);
+
+    Livewire::actingAs($this->systemAdmin)
+        ->test(OrganizationProfileLivewire::class, ['id' => $pharmacyOrg->id])
+        ->call('createMember')
+        ->set('member_name', 'Pharmacy Staff')
+        ->set('member_email', 'staff@pharmacy.com')
+        ->set('member_role_id', $this->doctorRole->id)
+        ->set('member_password', 'Password123!')
+        ->call('saveMember')
+        ->assertHasErrors(['member_role_id']);
 });
