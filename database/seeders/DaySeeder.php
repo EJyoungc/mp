@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Day;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DaySeeder extends Seeder
@@ -15,11 +14,11 @@ class DaySeeder extends Seeder
     {
         //
 
-        for($i = 1; $i < 8; $i++){
+        for ($i = 1; $i < 8; $i++) {
             Day::create([
-                'day_number' => $i
+                'day_number' => $i,
             ]);
         }
-        
+
     }
 }

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Trimester;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class TrimesterSeeder extends Seeder
@@ -15,12 +14,11 @@ class TrimesterSeeder extends Seeder
     {
         //
 
-        for($i = 1; $i < 4; $i++){
+        for ($i = 1; $i < 4; $i++) {
             Trimester::create([
-                'trimester' => $i
+                'trimester' => $i,
             ]);
         }
-
 
     }
 }

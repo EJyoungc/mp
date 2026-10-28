@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             //
 
-
             $table->string('organization_verify')->nullable()->default('pending')->after('organization_id');
 
         });

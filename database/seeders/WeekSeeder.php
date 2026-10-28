@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Week;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class WeekSeeder extends Seeder
@@ -14,24 +13,24 @@ class WeekSeeder extends Seeder
     public function run(): void
     {
 
-        //first trimester
-        for($i = 1; $i < 13; $i++){
+        // first trimester
+        for ($i = 1; $i < 13; $i++) {
             Week::create([
                 'week' => $i,
-                'trimester_id' => 1
+                'trimester_id' => 1,
             ]);
         }
         //
-        //second trimester
-        for($i = 13; $i < 27; $i++){
+        // second trimester
+        for ($i = 13; $i < 27; $i++) {
             Week::create([
                 'week' => $i,
-                'trimester_id' => 2
+                'trimester_id' => 2,
             ]);
         }
 
-        //third trimester
-        for($i = 27; $i < 41; $i++){
+        // third trimester
+        for ($i = 27; $i < 41; $i++) {
             Week::create([
                 'week' => $i,
                 'trimester_id' => 3,

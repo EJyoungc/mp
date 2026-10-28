@@ -6,19 +6,25 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Livewire\Component;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class ProfileLivewire extends Component
 {
-    use WithFileUploads;
     use LivewireAlert;
+    use WithFileUploads;
+
     public $name;
+
     public $email;
+
     public $current_password;
+
     public $new_password;
+
     public $photo;
+
     public $user;
 
     // public $description;
@@ -26,11 +32,17 @@ class ProfileLivewire extends Component
 
     // Organization details
     public $org_name;
+
     public $org_email;
+
     public $org_phone;
+
     public $org_website;
+
     public $org_address;
+
     public $org_description;
+
     public $is_pharmacy;
 
     public function mount()
@@ -106,7 +118,7 @@ class ProfileLivewire extends Component
 
         $this->validate($rules);
 
-        if (!empty($this->current_password)) {
+        if (! empty($this->current_password)) {
             $this->validate([
                 'current_password' => 'required|string',
                 'new_password' => 'required|string|min:8',
@@ -116,6 +128,7 @@ class ProfileLivewire extends Component
                 $user->password = Hash::make($this->new_password);
             } else {
                 $this->addError('current_password', 'Invalid current password');
+
                 return;
             }
         }

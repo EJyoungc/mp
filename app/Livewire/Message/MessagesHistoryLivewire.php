@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Livewire\Message;
+
 use App\Models\MessageHistory;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -7,12 +9,17 @@ use Livewire\WithPagination;
 class MessagesHistoryLivewire extends Component
 {
     use WithPagination;
+
     protected $paginationTheme = 'bootstrap';
 
     public $modal = false;
+
     public $search = '';
+
     public $status = '';
+
     public $perPage = 10;
+
     public $selected_message = null;
 
     public function updatingSearch()
@@ -31,10 +38,11 @@ class MessagesHistoryLivewire extends Component
         $this->modal = true;
     }
 
-    public function cancel(){
+    public function cancel()
+    {
         $this->reset([
             'modal',
-            'selected_message'
+            'selected_message',
         ]);
     }
 
@@ -43,10 +51,10 @@ class MessagesHistoryLivewire extends Component
         $messages = MessageHistory::with(['mother', 'tip', 'week', 'day'])
             ->when($this->search, function ($query) {
                 $query->whereHas('mother', function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('phone', 'like', '%' . $this->search . '%');
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('phone', 'like', '%'.$this->search.'%');
                 })->orWhereHas('tip', function ($q) {
-                    $q->where('tip', 'like', '%' . $this->search . '%');
+                    $q->where('tip', 'like', '%'.$this->search.'%');
                 });
             })
             ->when($this->status, function ($query) {
@@ -56,7 +64,7 @@ class MessagesHistoryLivewire extends Component
             ->paginate($this->perPage);
 
         return view('livewire.message.messages-history-livewire', [
-            'messages' => $messages
+            'messages' => $messages,
         ]);
     }
 }

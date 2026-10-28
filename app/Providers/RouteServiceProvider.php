@@ -39,7 +39,6 @@ class RouteServiceProvider extends ServiceProvider
         //     return Route::post('/micromekv2/livewire/update', $handle);
         // });
 
-
         $this->routes(function () {
             Route::middleware('api')
                 ->prefix('api')

@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Area;
+use App\Models\District;
 use App\Models\Organization;
 use Illuminate\Database\Seeder;
 
@@ -12,8 +14,8 @@ class OrganizationSeeder extends Seeder
      */
     public function run(): void
     {
-        $district = \App\Models\District::first();
-        $area = \App\Models\Area::where('district_id', $district->id)->first();
+        $district = District::first();
+        $area = Area::where('district_id', $district->id)->first();
 
         Organization::create([
             'name' => 'General Health Clinic',

@@ -23,6 +23,4 @@ class Mother extends Model
         'traditional_Authority',
 
     ];
-   
-  
 }

@@ -14,7 +14,8 @@ class SignSymptom extends Model
         'symptoms',
     ];
 
-    public function tips(){
+    public function tips()
+    {
         return $this->hasMany(Tip::class, 'sign_symptoms_id');
     }
 }

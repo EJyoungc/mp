@@ -9,10 +9,9 @@ class DayRange extends Model
 {
     use HasFactory;
 
-
-    protected $fillable =[
+    protected $fillable = [
         'name',
         'start_time',
-        'end_time'
+        'end_time',
     ];
 }

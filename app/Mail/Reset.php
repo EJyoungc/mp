@@ -3,8 +3,8 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -16,18 +16,16 @@ class Reset extends Mailable
     /**
      * Create a new message instance.
      */
-    
     public $user;
-    public $password; 
 
+    public $password;
 
     public function __construct($user, $password)
     {
         //
         $this->user = $user;
         $this->password = $password;
-         
-        
+
     }
 
     /**
@@ -49,7 +47,7 @@ class Reset extends Mailable
             markdown: 'mail.users.reset',
             with: [
                 'user' => $this->user,
-                'password' => $this->password
+                'password' => $this->password,
             ]
         );
     }
@@ -57,7 +55,7 @@ class Reset extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {

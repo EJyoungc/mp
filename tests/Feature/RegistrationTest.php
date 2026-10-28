@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\Area;
+use App\Models\District;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Fortify\Features;
 use Laravel\Jetstream\Jetstream;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
@@ -24,8 +26,8 @@ test('registration screen cannot be rendered if support is disabled', function (
 
 test('new users can register', function () {
     $this->withoutMiddleware();
-    $district = \App\Models\District::create(['name' => 'Blantyre']);
-    $area = \App\Models\Area::create(['district_id' => $district->id, 'name' => 'Limbe']);
+    $district = District::create(['name' => 'Blantyre']);
+    $area = Area::create(['district_id' => $district->id, 'name' => 'Limbe']);
 
     $response = $this->post('/register', [
         'name' => 'Test User',

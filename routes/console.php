@@ -22,5 +22,3 @@ Schedule::command('app:send-pharmacy-ads')
     // ->everyMinute()
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/pharmacy-ads-cron.log'));
-
-

@@ -12,26 +12,25 @@ class IsOrginizationVerified
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
 
-
         // dd(Auth::user()->role->name == "system-admin");
-        if (Auth::user()->role->name == "system-admin") {
+        if (Auth::user()->role->name == 'system-admin') {
 
             return $next($request);
-        }else{
+        } else {
 
             if (Auth::user()->organization_id == null || Auth::user()->organization_verify == 'pending') {
 
                 return redirect()->route('organizations.user.check');
             }
+
             return $next($request);
 
         }
-
 
     }
 }

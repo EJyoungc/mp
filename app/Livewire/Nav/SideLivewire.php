@@ -11,11 +11,11 @@ class SideLivewire extends Component
     public function render()
     {
 
-
         $trimesters = Trimester::all();
         $name = Auth::user();
+
         return view('livewire.nav.side-livewire')
-        ->with('name',$name)
-        ->with('trimesters', $trimesters);
+            ->with('name', $name)
+            ->with('trimesters', $trimesters);
     }
 }

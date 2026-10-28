@@ -12,16 +12,16 @@ class AdminAuth
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(Auth::check() && Auth::user()->role->name == "admin"){
-            
+        if (Auth::check() && Auth::user()->role->name == 'admin') {
+
             return $next($request);
-        }else{
+        } else {
             return redirect()->route('access-denied');
         }
-       
+
     }
 }

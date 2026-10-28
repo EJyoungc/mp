@@ -1,9 +1,14 @@
 <?php
 
+use App\Providers\AliasServiceProvider;
+use App\Providers\AppServiceProvider;
+use App\Providers\FortifyServiceProvider;
+use App\Providers\JetstreamServiceProvider;
+
 return [
-    App\Providers\AliasServiceProvider::class,
-    App\Providers\AppServiceProvider::class,
-    App\Providers\FortifyServiceProvider::class,
-    App\Providers\JetstreamServiceProvider::class,
-    
+    AliasServiceProvider::class,
+    AppServiceProvider::class,
+    FortifyServiceProvider::class,
+    JetstreamServiceProvider::class,
+
 ];

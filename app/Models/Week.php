@@ -21,14 +21,14 @@ class Week extends Model
         });
     }
 
-    public function tips(){
+    public function tips()
+    {
         return $this->hasMany(Tip::class);
     }
 
-    public function trimester(){
+    public function trimester()
+    {
 
         return $this->belongsTo(Trimester::class);
     }
-
-
 }

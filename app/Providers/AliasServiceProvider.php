@@ -16,10 +16,10 @@ class AliasServiceProvider extends ServiceProvider
     {
         //
 
-        $loader =  AliasLoader::getInstance();
-        $loader->alias('SD',StandardData::class);
+        $loader = AliasLoader::getInstance();
+        $loader->alias('SD', StandardData::class);
         // $loader->alias('Hashids',Hashids::class);
-        
+
     }
 
     /**

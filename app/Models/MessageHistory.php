@@ -24,24 +24,28 @@ class MessageHistory extends Model
         'api_response' => 'array',
     ];
 
-
-    public function tip(){
+    public function tip()
+    {
         return $this->belongsTo(Tip::class);
     }
-    public function day_ranger(){   
+
+    public function day_ranger()
+    {
         return $this->belongsTo(DayRange::class);
     }
-    public function day(){
+
+    public function day()
+    {
         return $this->belongsTo(Day::class);
     }
 
-    public function week(){
+    public function week()
+    {
         return $this->belongsTo(Week::class);
     }
 
-    public function mother(){
-        return $this->belongsTo(User::class,'mother_id');
+    public function mother()
+    {
+        return $this->belongsTo(User::class, 'mother_id');
     }
-
-
 }

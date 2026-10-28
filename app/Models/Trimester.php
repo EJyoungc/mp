@@ -9,10 +9,8 @@ class Trimester extends Model
 {
     use HasFactory;
 
-
-
     protected $fillable = [
-        'trimester'
+        'trimester',
     ];
 
     protected static function booted()
@@ -26,6 +24,4 @@ class Trimester extends Model
     {
         return $this->hasMany(Week::class);
     }
-
-    
 }
