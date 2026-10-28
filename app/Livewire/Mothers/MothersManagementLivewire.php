@@ -289,7 +289,7 @@ class MothersManagementLivewire extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
+            'email' => 'nullable|email|unique:users,email,'.($this->mother_id ?? 'NULL').',id',
             'phone' => 'required|string|max:20',
             'date_of_birth' => 'required|date',
             'marital_status' => 'required',
@@ -303,7 +303,7 @@ class MothersManagementLivewire extends Component
             'area_id' => 'required|exists:areas,id',
             'traditional_authority' => 'required|string|max:255',
             'height' => 'required|numeric|min:0',
-            'last_menstrual_cycle' => 'required|date',
+            'last_menstrual_cycle' => 'required|date|before_or_equal:today',
             'deliveries' => 'required|integer|min:0|max:10',
             'abortions' => 'required|integer|min:0|max:3',
         ]);
@@ -358,7 +358,7 @@ class MothersManagementLivewire extends Component
             $this->alert('success', 'Mother updated successfully');
         } else {
             // New Mother
-            $userData['email'] = $this->email ?? $this->generateUniqueEmail($this->name);
+            $userData['email'] = ! empty($this->email) ? $this->email : $this->generateUniqueEmail($this->name);
             $userData['password'] = Hash::make('password');
             $userData['role_id'] = 4; // Mother role
             $userData['organization_id'] = $user->organization_id;

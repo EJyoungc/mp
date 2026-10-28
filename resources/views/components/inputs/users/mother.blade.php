@@ -25,7 +25,12 @@
     <label for="Age">Age</label>
     <input type="text" class="form-control" readonly wire:model="age">
     <x-input-error for="age" />
+</div>
 
+<div class="form-group">
+    <label for="last_menstrual_cycle">Last Menstrual Period (LMP) <span class="text-danger">*</span></label>
+    <input type="date" class="form-control" wire:model="last_menstrual_cycle" max="{{ now()->format('Y-m-d') }}">
+    <x-input-error for="last_menstrual_cycle" />
 </div>
 
 <div class="form-group">

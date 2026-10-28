@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Users;
 
+use App\Helper\StandardData;
 use App\Models\Area;
 use App\Models\District;
+use App\Models\History;
 use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
@@ -65,31 +67,33 @@ class UserCreateLivewire extends Component
 
     public $traditional_authority;
 
+    public $last_menstrual_cycle;
+
     public $last_normal_menstrual_period_date;
 
     public $height;
 
-    public $legOrSpine;
+    public $legOrSpine = 'No';
 
-    public $deformity;
+    public $deformity = 'No';
 
-    public $deliveries;
+    public $deliveries = 0;
 
-    public $abortions;
+    public $abortions = 0;
 
-    public $stillBirths;
+    public $stillBirths = 'No';
 
-    public $cSection;
+    public $cSection = 'No';
 
-    public $vacum;
+    public $vacum = 'No';
 
-    public $multiple;
+    public $multiple = 'No';
 
-    public $tuberculosis;
+    public $tuberculosis = 'No';
 
-    public $asthma;
+    public $asthma = 'No';
 
-    public $menstrualCycle;
+    public $menstrualCycle = 'Regular';
 
     public function generateUniqueEmail($name, $domain = 'mother.com')
     {
@@ -273,10 +277,8 @@ class UserCreateLivewire extends Component
             case 'mother':
 
                 $this->validate([
-                    'name' => 'required | string | max:255',
-
-                    // 'email' => 'required | string | email | max:255 | unique:users',
-                    'date_of_birth' => 'required | date',
+                    'name' => 'required|string|max:255',
+                    'date_of_birth' => 'required|date',
                     'marital_status' => 'required',
                     'religion' => 'required',
                     'level_of_education' => 'required',
@@ -288,8 +290,8 @@ class UserCreateLivewire extends Component
                     'district_id' => 'required|exists:districts,id',
                     'area_id' => 'required|exists:areas,id',
                     'phone' => 'required',
-                    'traditional_authority' => 'required | string| max:255',
-                    // 'last_normal_menstrual_period_date' => 'required | date',
+                    'traditional_authority' => 'required|string|max:255',
+                    'last_menstrual_cycle' => 'required|date|before_or_equal:today',
                     'height' => 'required|numeric|min:0',
                     'legOrSpine' => 'required',
                     'deformity' => 'required',
@@ -302,9 +304,8 @@ class UserCreateLivewire extends Component
                     'tuberculosis' => 'required',
                     'asthma' => 'required',
                     'menstrualCycle' => 'required',
-
                 ]);
-                //  dd($this);
+
                 $user = User::create([
                     'role_id' => $this->role_id,
                     'name' => $this->name,
@@ -323,7 +324,6 @@ class UserCreateLivewire extends Component
                     'area_id' => $this->area_id,
                     'phone' => $this->phone,
                     'traditional_authority' => $this->traditional_authority,
-                    // 'last_normal_menstrual_period_date' => $this->last_normal_menstrual_period_date,
                     'height' => $this->height,
                     'leg_or_spine' => $this->legOrSpine,
                     'deformity' => $this->deformity,
@@ -338,14 +338,18 @@ class UserCreateLivewire extends Component
                     'menstrual_cycle' => $this->menstrualCycle,
                     'organization_id' => Auth::user()->organization_id,
                     'organization_verify' => 'verified',
+                ]);
 
+                History::create([
+                    'mother_id' => $user->id,
+                    'infant_number' => 1,
+                    'last_menstrual_cycle' => $this->last_menstrual_cycle,
+                    'organization_id' => $user->organization_id,
                 ]);
 
                 $this->alert('success', 'Mother Created Successfully');
-                sleep(5);
 
                 return redirect(route('users'));
-
                 break;
         }
     }

@@ -4,10 +4,10 @@ namespace App\Livewire\Users;
 
 use App\Models\Area;
 use App\Models\District;
+use App\Models\History;
 use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Hash;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 
@@ -54,6 +54,8 @@ class UserEditLivewire extends Component
     public $area_id;
 
     public $traditional_authority;
+
+    public $last_menstrual_cycle;
 
     public $last_normal_menstrual_period_date;
 
@@ -146,6 +148,12 @@ class UserEditLivewire extends Component
         $this->asthma = $this->user->asthma;
         $this->menstrualCycle = $this->user->menstrual_cycle;
 
+        if ($this->role === 'mother') {
+            $history = History::where('mother_id', $this->user->id)->latest()->first();
+            if ($history) {
+                $this->last_menstrual_cycle = $history->last_menstrual_cycle;
+            }
+        }
     }
 
     public function updatedDateOfBirth()
@@ -236,9 +244,8 @@ class UserEditLivewire extends Component
             case 'mother':
 
                 $this->validate([
-                    'name' => 'required | string | max:255',
-                    // 'email' => 'required | string | email | max:255 | unique:users',
-                    'date_of_birth' => 'required | date',
+                    'name' => 'required|string|max:255',
+                    'date_of_birth' => 'required|date',
                     'marital_status' => 'required',
                     'religion' => 'required',
                     'level_of_education' => 'required',
@@ -250,8 +257,8 @@ class UserEditLivewire extends Component
                     'district_id' => 'required|exists:districts,id',
                     'area_id' => 'required|exists:areas,id',
                     'phone' => 'required',
-                    'traditional_authority' => 'required | string| max:255',
-                    // 'last_normal_menstrual_period_date' => 'required | date',
+                    'traditional_authority' => 'required|string|max:255',
+                    'last_menstrual_cycle' => 'nullable|date|before_or_equal:today',
                     'height' => 'required|numeric|min:0',
                     'legOrSpine' => 'required',
                     'deformity' => 'required',
@@ -264,14 +271,11 @@ class UserEditLivewire extends Component
                     'tuberculosis' => 'required',
                     'asthma' => 'required',
                     'menstrualCycle' => 'required',
-
                 ]);
 
                 $this->user->update([
                     'role_id' => $this->role_id,
                     'name' => $this->name,
-                    // 'email' => $this->generateUniqueEmail($this->name),
-                    // 'password' => Hash::make(StandardData::generatePassword()),
                     'date_of_birth' => $this->date_of_birth,
                     'marital_status' => $this->marital_status,
                     'religion' => $this->religion,
@@ -285,7 +289,6 @@ class UserEditLivewire extends Component
                     'area_id' => $this->area_id,
                     'phone' => $this->phone,
                     'traditional_authority' => $this->traditional_authority,
-                    // 'last_normal_menstrual_period_date' => $this->last_normal_menstrual_period_date,
                     'height' => $this->height,
                     'leg_or_spine' => $this->legOrSpine,
                     'deformity' => $this->deformity,
@@ -299,10 +302,19 @@ class UserEditLivewire extends Component
                     'asthma' => $this->asthma,
                     'menstrual_cycle' => $this->menstrualCycle,
                 ]);
-                // dd($this->stillBirths,$this->cSection,$this->vacum,$this->user);
+
+                if ($this->last_menstrual_cycle) {
+                    History::updateOrCreate(
+                        ['mother_id' => $this->user->id],
+                        [
+                            'last_menstrual_cycle' => $this->last_menstrual_cycle,
+                            'infant_number' => 1,
+                            'organization_id' => $this->user->organization_id,
+                        ]
+                    );
+                }
 
                 $this->alert('success', 'Mother Updated Successfully');
-                sleep(5);
 
                 return redirect(route('users'));
                 break;
