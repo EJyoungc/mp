@@ -90,6 +90,7 @@ class History extends Model
         $isToday = $last_menstrual_cycle->isToday();
 
         $days = (int) abs(round($now->diffInDays($last_menstrual_cycle), 0, PHP_ROUND_HALF_DOWN));
+        $dayInWeek = $days > 0 ? ((($days - 1) % 7) + 1) : 1;
 
         // Find trimester
         $weekModel = Week::where('week', $weeks)->first();
@@ -97,6 +98,7 @@ class History extends Model
 
         return [
             'days' => $days,
+            'day_in_week' => $dayInWeek,
             'weeks' => $weeks,
             'trimester_id' => $trimesterId,
             'day_of_week' => $dayOfWeek,

@@ -40,9 +40,15 @@ class CheckMessages extends Command
             foreach ($histories as $history) {
                 $weekdata = $history->calculate_weekv2($timezone);
 
+                $dayInWeek = (int) ($weekdata['day_in_week'] ?? ((($weekdata['days'] - 1) % 7) + 1));
+                $cumulativeDay = (int) $weekdata['days'];
+
                 $tips = Tip::with('day_range')
                     ->where('week_id', (int) $weekdata['weeks'])
-                    ->where('day_id', (int) $weekdata['days'])
+                    ->where(function ($q) use ($dayInWeek, $cumulativeDay) {
+                        $q->where('day_id', $dayInWeek)
+                            ->orWhere('day_id', $cumulativeDay);
+                    })
                     ->approved() // Only send approved tips
                     ->get();
 

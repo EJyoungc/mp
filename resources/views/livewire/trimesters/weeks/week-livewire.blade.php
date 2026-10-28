@@ -65,8 +65,8 @@
                                             </div>
                                             @foreach ($days as $item)
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="bulk-day-{{ $item }}" value="{{ $item }}" wire:model="selectedDays">
-                                                    <label class="custom-control-label" for="bulk-day-{{ $item }}">Day {{ $item }}</label>
+                                                    <input type="checkbox" class="custom-control-input" id="bulk-day-{{ $item->id ?? $item }}" value="{{ $item->id ?? $item }}" wire:model="selectedDays">
+                                                    <label class="custom-control-label" for="bulk-day-{{ $item->id ?? $item }}">Day {{ $item->day_number ?? $item }}</label>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -122,7 +122,7 @@
                                     <select wire:model="day" class="form-control">
                                         <option value="">Select Day</option>
                                         @foreach ($days as $item)
-                                            <option value="{{ $item }}">{{ $item }}</option>
+                                            <option value="{{ $item->id ?? $item }}">Day {{ $item->day_number ?? $item }}</option>
                                         @endforeach
                                     </select>
                                     <x-input-error for="day" />
@@ -184,7 +184,7 @@
                                                         <small class="d-block text-muted">By: {{ $item->creator->name }}</small>
                                                     @endif
                                                 </td>
-                                                <td>{{ $item->day_id }}</td>
+                                                <td>Day {{ ($item->day && $item->day->day_number) ? $item->day->day_number : (($item->day_id > 7) ? ((($item->day_id - 1) % 7) + 1) : $item->day_id) }}</td>
                                                 <td>
                                                     <div class="text-capitalize">{{ $item->day_range->name }}</div>
                                                     <small class="text-muted d-block">({{ $item->day_range->start_time }} - {{ $item->day_range->end_time }})</small>

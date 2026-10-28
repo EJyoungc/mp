@@ -258,7 +258,9 @@ class WeekLivewire extends Component
         } else {
             $this->tip_id = Tip::findOrFail($id);
             $this->time = $this->tip_id->day_range_id;
-            $this->day = $this->tip_id->day_id;
+            $storedDay = (int) $this->tip_id->day_id;
+            // Map legacy cumulative day numbers (e.g. 64-70 in week 10) to 1-7
+            $this->day = ($storedDay > 7) ? ((($storedDay - 1) % 7) + 1) : $storedDay;
             $this->tip = $this->tip_id->tip;
             $this->modal = true;
         }
@@ -284,7 +286,7 @@ class WeekLivewire extends Component
 
     public function render()
     {
-        $tips = Tip::with(['creator', 'approver'])->where('week_id', $this->week_id)->get();
+        $tips = Tip::with(['creator', 'approver', 'day'])->where('week_id', $this->week_id)->get();
 
         // Templates available to all organizations
         $templates = Tip::withoutGlobalScope('organization')
@@ -292,9 +294,10 @@ class WeekLivewire extends Component
             ->where('week_id', $this->week_id)
             ->get();
 
-        $week_number = $this->week->week;
-        $days_in_week = range(($week_number * 7) - 6, ($week_number * 7));
-        // dd($days_in_week);
+        $days_in_week = Day::orderBy('day_number')->get();
+        if ($days_in_week->isEmpty()) {
+            $days_in_week = collect(range(1, 7))->map(fn ($num) => (object) ['id' => $num, 'day_number' => $num]);
+        }
 
         $day_ranges = DayRange::all();
 
