@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Trimesters\Weeks;
 
+use App\Models\Day;
 use App\Models\DayRange;
 use App\Models\Tip;
 use App\Models\Trimester;
@@ -94,9 +95,8 @@ class WeekLivewire extends Component
     public function updatedSelectAllDays($value)
     {
         if ($value) {
-            $week_number = $this->week->week;
-            $this->selectedDays = range(($week_number * 7) - 6, ($week_number * 7));
-            $this->selectedDays = array_map('strval', $this->selectedDays);
+            $days = Day::pluck('id')->map(fn ($id) => (string) $id)->toArray();
+            $this->selectedDays = ! empty($days) ? $days : array_map('strval', range(1, 7));
         } else {
             $this->selectedDays = [];
         }
