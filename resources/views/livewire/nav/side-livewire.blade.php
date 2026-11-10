@@ -120,6 +120,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('sms.settings') }}" class="nav-link {{ request()->routeIs('sms.settings') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-sms"></i>
+                                <p>SMS Settings</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('settings') }}" class="nav-link">
                                 <i class="nav-icon fas fa-cog"></i>
                                 <p>Settings</p>
@@ -192,6 +198,12 @@
                             <p>Message Histories</p>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('sms.settings') }}" class="nav-link {{ request()->routeIs('sms.settings') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-sms"></i>
+                            <p>SMS Settings</p>
+                        </a>
+                    </li>
                     @endif
 
                     @endif
@@ -248,6 +260,12 @@
                             <p>Message Histories</p>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('sms.settings') }}" class="nav-link {{ request()->routeIs('sms.settings') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-sms"></i>
+                            <p>SMS Settings</p>
+                        </a>
+                    </li>
 
                     @endif
                     {{-- practitioner --}}
@@ -297,6 +315,12 @@
                         <a href="{{ route('messages.histories') }}" class="nav-link">
                             <i class="nav-icon fas fa-history"></i>
                             <p>Message Histories</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('sms.settings') }}" class="nav-link {{ request()->routeIs('sms.settings') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-sms"></i>
+                            <p>SMS Settings</p>
                         </a>
                     </li>
 

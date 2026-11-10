@@ -18,11 +18,17 @@ class MessageHistory extends Model
         'history_id',
         'message_status',
         'api_response',
+        'organization_id',
     ];
 
     protected $casts = [
         'api_response' => 'array',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
     public function tip()
     {

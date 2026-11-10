@@ -22,6 +22,27 @@ class SmsService
     }
 
     /**
+     * Formats an SMS message to prefix the organization's acronym/alias if provided.
+     * E.g. "uchembere: Drink water every 3 hours"
+     */
+    public static function formatWithAcronym(string $message, ?string $acronym): string
+    {
+        $message = trim($message);
+        $acronym = trim((string) $acronym);
+
+        if (empty($acronym)) {
+            return $message;
+        }
+
+        // Avoid duplicating if the message already begins with the acronym (e.g. "uchembere:")
+        if (str_starts_with(strtolower($message), strtolower($acronym).':')) {
+            return $message;
+        }
+
+        return "{$acronym}: {$message}";
+    }
+
+    /**
      * Send an SMS and update any message history model (MessageHistory or AdHistory).
      */
     public function sendSmsGeneric($historyModel, string $phoneNumber, string $message): bool

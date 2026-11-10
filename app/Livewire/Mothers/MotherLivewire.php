@@ -276,7 +276,10 @@ class MotherLivewire extends Component
                 'organization_id' => $orgId,
             ]);
 
-            $success = $smsService->sendSmsGeneric($history, $this->mother->phone, $this->customMessageText);
+            $org = $this->mother->organization ?? auth()->user()->organization;
+            $formattedMessage = SmsService::formatWithAcronym($this->customMessageText, $org?->acronym);
+
+            $success = $smsService->sendSmsGeneric($history, $this->mother->phone, $formattedMessage);
 
             if ($success) {
                 $history->update(['message_status' => 'Sent']);
@@ -305,9 +308,11 @@ class MotherLivewire extends Component
         }
 
         $text = $message->tip->tip ?? 'Pregnancy Health Reminder';
+        $org = $message->tip?->organization ?? $message->organization ?? $this->mother->organization ?? auth()->user()->organization;
+        $formattedText = SmsService::formatWithAcronym($text, $org?->acronym);
 
         try {
-            $success = $smsService->sendSmsGeneric($message, $this->mother->phone, $text);
+            $success = $smsService->sendSmsGeneric($message, $this->mother->phone, $formattedText);
 
             if ($success) {
                 $message->update(['message_status' => 'Sent']);

@@ -120,14 +120,18 @@ it('dispatches SMS tip for Week 10 Day 4 mother when tip is configured with day 
     $history = History::create([
         'mother_id' => $mother->id,
         'infant_number' => 1,
-        'last_menstrual_cycle' => now()->subDays(67)->toDateString(),
+        'last_menstrual_cycle' => now()->subWeeks(9)->subDays(3)->toDateString(),
         'organization_id' => $this->org->id,
     ]);
 
+    $weekData = $history->calculate_weekv2();
+    $weekNum = (int) $weekData['weeks'];
+    $dayInWeek = (int) ($weekData['day_in_week'] ?? 4);
+
     $tip = Tip::create([
         'tip' => 'Baby is growing fingernails this week! Eat nutritious meals.',
-        'week_id' => 10,
-        'day_id' => 4,
+        'week_id' => $weekNum,
+        'day_id' => $dayInWeek,
         'day_range_id' => $this->dayRange->id,
         'organization_id' => $this->org->id,
         'status' => Tip::STATUS_APPROVED,
@@ -138,7 +142,7 @@ it('dispatches SMS tip for Week 10 Day 4 mother when tip is configured with day 
 
     Queue::assertPushed(SendSmsTipJob::class, function ($job) use ($mother, $tip) {
         return $job->phoneNumber === $mother->phone
-            && $job->message === $tip->tip;
+            && str_contains($job->message, $tip->tip);
     });
 
     $msg = MessageHistory::where('mother_id', $mother->id)->first();

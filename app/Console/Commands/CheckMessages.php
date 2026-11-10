@@ -7,6 +7,7 @@ use App\Models\History;
 use App\Models\MessageHistory;
 use App\Models\Setting;
 use App\Models\Tip;
+use App\Services\SmsService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -82,6 +83,9 @@ class CheckMessages extends Command
             return;
         }
 
+        $org = $tip->organization ?? $history->organization ?? $history->mother?->organization;
+        $orgId = $tip->organization_id ?? $history->organization_id ?? $history->mother?->organization_id;
+
         $messageHistory = MessageHistory::firstOrCreate(
             [
                 'tip_id' => $tip->id,
@@ -93,6 +97,7 @@ class CheckMessages extends Command
             [
                 'day_id' => $tip->day_id,
                 'message_status' => 'unsent',
+                'organization_id' => $orgId,
             ]
         );
 
@@ -109,10 +114,12 @@ class CheckMessages extends Command
 
         $this->info("Dispatching message for Mother: {$history->mother->name}");
 
+        $messageText = SmsService::formatWithAcronym($tip->tip, $org?->acronym);
+
         SendSmsTipJob::dispatch(
             $messageHistory,
             $history->mother->phone,
-            $tip->tip
+            $messageText
         );
     }
 }

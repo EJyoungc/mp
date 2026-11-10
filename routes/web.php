@@ -17,6 +17,7 @@ use App\Livewire\Organizations\OrganizationUserCheckLivewire;
 use App\Livewire\Organizations\OrganizationUsersLivewire;
 use App\Livewire\Profile\ProfileLivewire;
 use App\Livewire\Settings\SettingsLivewire;
+use App\Livewire\Settings\SmsSettingsLivewire;
 use App\Livewire\TestLivewire;
 use App\Livewire\Trimesters\Weeks\WeekLivewire;
 use App\Livewire\Trimesters\Weeks\WeeksLivewire;
@@ -66,6 +67,7 @@ Route::middleware([
         Route::get('/messages-histories', MessagesHistoryLivewire::class)->name('messages.histories');
         Route::get('/ad-histories', AdHistoriesLivewire::class)->name('ad.histories');
         Route::get('/districts-areas', DistrictsAreasLivewire::class)->name('districts.areas')->middleware('System');
+        Route::get('/sms-settings', SmsSettingsLivewire::class)->name('sms.settings');
         Route::get('/settings', SettingsLivewire::class)->name('settings')->middleware('System');
     });
 
