@@ -65,6 +65,13 @@
                             </a>
                         </li>
 
+                        <li class="nav-item">
+                            <a href="{{ route('tips') }}" class="nav-link {{ request()->routeIs('tips*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-lightbulb"></i>
+                                <p>Tips Management</p>
+                            </a>
+                        </li>
+
 
                         <li class="nav-item">
                             <a href="#" class="nav-link">
@@ -167,7 +174,21 @@
                         </a>
                     </li>
 
+                    <li class="nav-item">
+                        <a href="{{ route('tips') }}" class="nav-link {{ request()->routeIs('tips*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-lightbulb"></i>
+                            <p>Tips Management</p>
+                        </a>
+                    </li>
+
                     @if(!Auth::user()->isPharmacyAdmin())
+                    <li class="nav-item">
+                        <a href="{{ route('tips') }}" class="nav-link {{ request()->routeIs('tips*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-lightbulb"></i>
+                            <p>Tips Management</p>
+                        </a>
+                    </li>
+
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-copy"></i>
@@ -230,6 +251,13 @@
                         </a>
                     </li>
 
+                    <li class="nav-item">
+                        <a href="{{ route('tips') }}" class="nav-link {{ request()->routeIs('tips*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-lightbulb"></i>
+                            <p>Tips Management</p>
+                        </a>
+                    </li>
+
 
                     <li class="nav-item">
                         <a href="#" class="nav-link">
@@ -288,6 +316,13 @@
                         <a href="{{ route('users') }}" class="nav-link ">
                             <i class="nav-icon fas fa-users"></i>
                             <p>Users</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('tips') }}" class="nav-link {{ request()->routeIs('tips*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-lightbulb"></i>
+                            <p>Tips Management</p>
                         </a>
                     </li>
 

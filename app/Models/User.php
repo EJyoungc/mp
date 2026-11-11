@@ -229,12 +229,12 @@ class User extends Authenticatable
      */
     public function isSystemAdmin(): bool
     {
-        return ($this->role && $this->role->name === 'system-admin') || $this->role_id === 1;
+        return $this->role && $this->role->name === 'system-admin';
     }
 
     public function isOrgAdmin(): bool
     {
-        return ($this->role && ($this->role->name === 'admin' || $this->role->name === 'system-admin')) || in_array($this->role_id, [1, 2]);
+        return $this->role && ($this->role->name === 'admin' || $this->role->name === 'system-admin');
     }
 
     public function isPharmacyAdmin(): bool

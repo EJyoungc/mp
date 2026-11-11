@@ -19,6 +19,7 @@ use App\Livewire\Profile\ProfileLivewire;
 use App\Livewire\Settings\SettingsLivewire;
 use App\Livewire\Settings\SmsSettingsLivewire;
 use App\Livewire\TestLivewire;
+use App\Livewire\Tips\TipsManagementLivewire;
 use App\Livewire\Trimesters\Weeks\WeekLivewire;
 use App\Livewire\Trimesters\Weeks\WeeksLivewire;
 use App\Livewire\Users\UserCreateLivewire;
@@ -55,6 +56,7 @@ Route::middleware([
 
             Route::get('/trimester/{id}/weeks', WeeksLivewire::class)->name('trimester.weeks');
             Route::get('/trimester/{trimester_id}/weeks/{week_id}', WeekLivewire::class)->name('trimester.week.show');
+            Route::get('/tips', TipsManagementLivewire::class)->name('tips');
             Route::get('/days', DaysLivewire::class)->name('days');
             Route::get('days/ranges', DayRangesLivewire::class)->name('days.range');
         });
