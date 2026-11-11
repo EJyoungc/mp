@@ -106,11 +106,21 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label for="org_name">Organization Name</label>
+                                                <label for="org_name">Organization Name <span class="text-danger">*</span></label>
                                                 <input type="text" wire:model.defer="org_name" class="form-control" placeholder="Enter name">
                                                 @error('org_name') <span class="text-danger small">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="org_acronym">Organization Acronym / SMS Alias</label>
+                                                <input type="text" wire:model.defer="org_acronym" class="form-control" placeholder="e.g. uchembere, KCH, Bwaila" maxlength="30">
+                                                <small class="text-muted">Short prefix attached to SMS tips (e.g. "uchembere: Drink water...")</small>
+                                                @error('org_acronym') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="org_email">Organization Email</label>
@@ -118,8 +128,6 @@
                                                 @error('org_email') <span class="text-danger small">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="org_phone">Organization Phone</label>
@@ -127,6 +135,8 @@
                                                 @error('org_phone') <span class="text-danger small">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="org_website">Website URL</label>
@@ -134,11 +144,13 @@
                                                 @error('org_website') <span class="text-danger small">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="org_address">Physical Address</label>
-                                        <input type="text" wire:model.defer="org_address" class="form-control" placeholder="Enter physical address">
-                                        @error('org_address') <span class="text-danger small">{{ $message }}</span> @enderror
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="org_address">Physical Address</label>
+                                                <input type="text" wire:model.defer="org_address" class="form-control" placeholder="Enter physical address">
+                                                @error('org_address') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="org_description">Description / Bio</label>

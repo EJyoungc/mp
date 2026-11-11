@@ -51,6 +51,9 @@
                                 <div>
                                     <div class="d-flex align-items-center mb-1">
                                         <h3 class="font-weight-bold text-navy mb-0 mr-2">{{ $organization->name }}</h3>
+                                        @if($organization->acronym)
+                                            <span class="badge badge-primary px-2 py-1 mr-2 font-weight-bold" title="SMS Acronym Prefix"><i class="fas fa-tag mr-1"></i> {{ $organization->acronym }}</span>
+                                        @endif
                                         @if($organization->is_pharmacy)
                                             <span class="badge badge-success px-2 py-1"><i class="fas fa-pills mr-1"></i> Pharmacy Facility</span>
                                         @else

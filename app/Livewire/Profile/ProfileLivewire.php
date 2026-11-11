@@ -33,6 +33,8 @@ class ProfileLivewire extends Component
     // Organization details
     public $org_name;
 
+    public $org_acronym;
+
     public $org_email;
 
     public $org_phone;
@@ -54,6 +56,7 @@ class ProfileLivewire extends Component
 
         if ($this->user->organization) {
             $this->org_name = $this->user->organization->name;
+            $this->org_acronym = $this->user->organization->acronym;
             $this->org_email = $this->user->organization->email;
             $this->org_phone = $this->user->organization->phone;
             $this->org_website = $this->user->organization->website;
@@ -107,6 +110,7 @@ class ProfileLivewire extends Component
         if ($user->isOrgAdmin() && $user->organization) {
             $rules = array_merge($rules, [
                 'org_name' => 'required|string|max:255',
+                'org_acronym' => 'nullable|string|max:30',
                 'org_email' => 'nullable|email|max:255',
                 'org_phone' => 'nullable|string|max:20',
                 'org_website' => 'nullable|url|max:255',
@@ -141,6 +145,7 @@ class ProfileLivewire extends Component
         if ($user->isOrgAdmin() && $user->organization) {
             $user->organization()->update([
                 'name' => $this->org_name,
+                'acronym' => $this->org_acronym ? trim($this->org_acronym) : null,
                 'email' => $this->org_email,
                 'phone' => $this->org_phone,
                 'website' => $this->org_website,

@@ -31,8 +31,49 @@ class Organization extends Model
         'is_pharmacy' => 'boolean',
     ];
 
+    /**
+     * Generate an acronym from an organization's name.
+     */
+    public static function generateAcronym(?string $name): string
+    {
+        if (empty($name)) {
+            return '';
+        }
+
+        $name = trim($name);
+        $words = preg_split('/[\s\-_\.]+/u', $name, -1, PREG_SPLIT_NO_EMPTY);
+
+        if (count($words) >= 2) {
+            $acronym = '';
+            foreach ($words as $word) {
+                $char = mb_substr($word, 0, 1);
+                if (preg_match('/[\p{L}\p{N}]/u', $char)) {
+                    $acronym .= $char;
+                }
+            }
+
+            if (mb_strlen($acronym) >= 2) {
+                return mb_strtoupper(mb_substr($acronym, 0, 6));
+            }
+        }
+
+        $clean = preg_replace('/[^\p{L}\p{N}]/u', '', $name);
+
+        if (mb_strlen($clean) <= 4) {
+            return mb_strtoupper($clean);
+        }
+
+        return mb_strtoupper(mb_substr($clean, 0, 4));
+    }
+
     protected static function booted(): void
     {
+        static::creating(function (Organization $organization) {
+            if (empty($organization->acronym) && ! empty($organization->name)) {
+                $organization->acronym = static::generateAcronym($organization->name);
+            }
+        });
+
         static::deleting(function (Organization $organization) {
             // Delete AdHistories for this organization
             AdHistory::where('organization_id', $organization->id)->delete();

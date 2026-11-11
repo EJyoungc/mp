@@ -40,6 +40,8 @@ class OrganizationsLivewire extends Component
 
     public $name;
 
+    public $acronym = '';
+
     public $email;
 
     public $phone;
@@ -166,6 +168,7 @@ class OrganizationsLivewire extends Component
             $this->reset([
                 'organization',
                 'name',
+                'acronym',
                 'email',
                 'phone',
                 'website',
@@ -192,6 +195,7 @@ class OrganizationsLivewire extends Component
             }
 
             $this->name = $this->organization->name;
+            $this->acronym = $this->organization->acronym ?? '';
             $this->email = $this->organization->email;
             $this->phone = $this->organization->phone;
             $this->website = $this->organization->website;
@@ -211,6 +215,7 @@ class OrganizationsLivewire extends Component
 
         $rules = [
             'name' => 'required|string|max:255',
+            'acronym' => 'nullable|string|max:30',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'website' => 'nullable|url|max:255',
@@ -241,6 +246,7 @@ class OrganizationsLivewire extends Component
             DB::transaction(function () use ($user) {
                 $org = Organization::create([
                     'name' => $this->name,
+                    'acronym' => $this->acronym ? trim($this->acronym) : null,
                     'email' => $this->email,
                     'phone' => $this->phone,
                     'website' => $this->website,
@@ -300,6 +306,7 @@ class OrganizationsLivewire extends Component
 
             $this->organization->update([
                 'name' => $this->name,
+                'acronym' => $this->acronym ? trim($this->acronym) : null,
                 'email' => $this->email,
                 'phone' => $this->phone,
                 'website' => $this->website,
@@ -375,6 +382,7 @@ class OrganizationsLivewire extends Component
             'confirmingDeleteId',
             'confirmingDeleteName',
             'name',
+            'acronym',
             'email',
             'phone',
             'website',
@@ -399,6 +407,48 @@ class OrganizationsLivewire extends Component
             $this->credentialsModal = false;
             $this->createdUserCredentials = null;
         }
+    }
+
+    public function generateMissingAcronyms(): void
+    {
+        $user = auth()->user();
+        if (! $user->isSystemAdmin()) {
+            $this->alert('error', 'Only System Administrators can generate acronyms for all organizations.');
+
+            return;
+        }
+
+        $orgs = Organization::where(function ($q) {
+            $q->whereNull('acronym')->orWhere('acronym', '');
+        })->get();
+
+        $count = 0;
+        foreach ($orgs as $org) {
+            $acronym = Organization::generateAcronym($org->name);
+            if (! empty($acronym)) {
+                $org->update(['acronym' => $acronym]);
+                $count++;
+            }
+        }
+
+        $this->alert('success', "Generated and set acronyms for {$count} organization(s).");
+    }
+
+    public function generateSingleAcronym(int $id): void
+    {
+        $user = auth()->user();
+        $org = Organization::findOrFail($id);
+
+        if (! $user->isSystemAdmin() && $org->owner_id !== $user->id) {
+            $this->alert('error', 'Unauthorized action.');
+
+            return;
+        }
+
+        $acronym = Organization::generateAcronym($org->name);
+        $org->update(['acronym' => $acronym]);
+
+        $this->alert('success', "Acronym for '{$org->name}' set to '{$acronym}'.");
     }
 
     public function render()
@@ -447,6 +497,7 @@ class OrganizationsLivewire extends Component
             $search = trim($this->search);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('acronym', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
                     ->orWhere('address', 'like', "%{$search}%")

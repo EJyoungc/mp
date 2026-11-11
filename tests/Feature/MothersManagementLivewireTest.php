@@ -1,12 +1,16 @@
 <?php
 
 use App\Livewire\Mothers\MothersManagementLivewire;
+use App\Livewire\Organizations\OrganizationsLivewire;
 use App\Livewire\Users\UserCreateLivewire;
 use App\Livewire\Users\UserEditLivewire;
 use App\Models\Area;
+use App\Models\DayRange;
 use App\Models\District;
 use App\Models\History;
+use App\Models\MessageHistory;
 use App\Models\Organization;
+use App\Models\Tip;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Livewire\Livewire;
@@ -268,4 +272,147 @@ it('updates a mother and her pregnancy history via UserEditLivewire', function (
 
     expect($mother->fresh()->name)->toBe('Mercy Chirwa Kaunda');
     expect(History::where('mother_id', $mother->id)->first()->last_menstrual_cycle)->toBe('2026-08-20');
+});
+
+it('displays acronyms on organizations page and allows bulk generating missing acronyms', function () {
+    $this->seed(RoleSeeder::class);
+    $admin = User::factory()->create(['role_id' => 1]);
+
+    $org1 = Organization::factory()->create([
+        'name' => 'Kamuzu Central Hospital',
+        'acronym' => 'KCH',
+    ]);
+
+    // Create org2 directly avoiding auto-hook by updating to empty
+    $org2 = Organization::factory()->create([
+        'name' => 'Bwaila District Hospital',
+    ]);
+    $org2->updateQuietly(['acronym' => null]);
+    expect($org2->fresh()->acronym)->toBeNull();
+
+    $this->actingAs($admin);
+
+    Livewire::test(OrganizationsLivewire::class)
+        ->assertSee('KCH')
+        ->assertSee('Not Set')
+        ->assertSee('Generate Missing Acronyms')
+        ->call('generateMissingAcronyms')
+        ->assertHasNoErrors()
+        ->assertDispatched('alert');
+
+    expect($org2->fresh()->acronym)->toBe('BDH');
+
+    // Single generation
+    $org3 = Organization::factory()->create(['name' => 'Uchembere Clinic']);
+    $org3->updateQuietly(['acronym' => null]);
+    expect($org3->fresh()->acronym)->toBeNull();
+
+    Livewire::test(OrganizationsLivewire::class)
+        ->call('generateSingleAcronym', $org3->id)
+        ->assertHasNoErrors()
+        ->assertDispatched('alert');
+
+    expect($org3->fresh()->acronym)->toBe('UC');
+});
+
+it('enhances mothers dashboard for system admin to filter by organization and view latest session tip', function () {
+    $this->seed(RoleSeeder::class);
+    $admin = User::factory()->create(['role_id' => 1]);
+
+    $district = District::create(['name' => 'Lilongwe']);
+    $area = Area::create(['name' => 'Area 25', 'district_id' => $district->id]);
+    $dayRange = DayRange::firstOrCreate(
+        ['name' => 'All Day'],
+        ['start_time' => '00:00:00', 'end_time' => '23:59:59']
+    );
+
+    $org1 = Organization::factory()->create([
+        'name' => 'Uchembere Clinic',
+        'acronym' => 'UC',
+        'is_pharmacy' => false,
+    ]);
+
+    $org2 = Organization::factory()->create([
+        'name' => 'Chikondi Hospital',
+        'acronym' => 'CH',
+        'is_pharmacy' => false,
+    ]);
+
+    // Mother 1 in Org 1 with a session and a message history
+    $mother1 = User::factory()->create([
+        'role_id' => 4,
+        'name' => 'Alinafe Banda',
+        'phone' => '0991112233',
+        'organization_id' => $org1->id,
+        'district_id' => $district->id,
+        'area_id' => $area->id,
+    ]);
+
+    $session1 = History::create([
+        'mother_id' => $mother1->id,
+        'last_menstrual_cycle' => now()->subDays(70)->format('Y-m-d'), // ~10 weeks
+        'infant_number' => 1,
+        'organization_id' => $org1->id,
+    ]);
+
+    $tip1 = Tip::create([
+        'tip' => 'Drink safe clean water and rest well daily.',
+        'trimester_id' => 1,
+        'week_id' => 10,
+        'day_id' => 2,
+        'day_range_id' => $dayRange->id,
+        'organization_id' => $org1->id,
+        'status' => Tip::STATUS_APPROVED,
+    ]);
+
+    MessageHistory::create([
+        'mother_id' => $mother1->id,
+        'history_id' => $session1->id,
+        'tip_id' => $tip1->id,
+        'week_id' => 10,
+        'day_id' => 2,
+        'day_range_id' => $dayRange->id,
+        'message_status' => 'sent',
+        'organization_id' => $org1->id,
+    ]);
+
+    // Mother 2 in Org 2 without messages
+    $mother2 = User::factory()->create([
+        'role_id' => 4,
+        'name' => 'Tadala Phiri',
+        'phone' => '0887778899',
+        'organization_id' => $org2->id,
+        'district_id' => $district->id,
+        'area_id' => $area->id,
+    ]);
+
+    $this->actingAs($admin);
+
+    // Initial view: System Admin sees both mothers, KPI overview, org badges and formatted tip
+    Livewire::test(MothersManagementLivewire::class)
+        ->assertSee('Alinafe Banda')
+        ->assertSee('Tadala Phiri')
+        ->assertSee('UC')
+        ->assertSee('CH')
+        ->assertSee('Drink safe clean water')
+        ->assertSee('Total Mothers')
+        ->assertSee('Active Sessions')
+        ->assertSee('Tips Sent')
+        // Filter by Org 1
+        ->set('organizationFilter', $org1->id)
+        ->assertSee('Alinafe Banda')
+        ->assertDontSee('Tadala Phiri')
+        // Filter by Org 2
+        ->set('organizationFilter', $org2->id)
+        ->assertSee('Tadala Phiri')
+        ->assertDontSee('Alinafe Banda')
+        // Reset filters
+        ->call('resetFilters')
+        ->assertSet('organizationFilter', '')
+        ->assertSee('Alinafe Banda')
+        ->assertSee('Tadala Phiri')
+        // Filter by status: with_session
+        ->set('statusFilter', 'with_session')
+        ->assertSee('Alinafe Banda')
+        ->assertDontSee('Tadala Phiri');
 });

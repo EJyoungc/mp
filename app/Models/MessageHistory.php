@@ -54,4 +54,9 @@ class MessageHistory extends Model
     {
         return $this->belongsTo(User::class, 'mother_id');
     }
+
+    public function history()
+    {
+        return $this->belongsTo(History::class);
+    }
 }

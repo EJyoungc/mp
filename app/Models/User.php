@@ -6,6 +6,8 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -195,6 +197,26 @@ class User extends Authenticatable
     public function organization()
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function histories(): HasMany
+    {
+        return $this->hasMany(History::class, 'mother_id');
+    }
+
+    public function latestHistory(): HasOne
+    {
+        return $this->hasOne(History::class, 'mother_id')->latestOfMany();
+    }
+
+    public function messageHistories(): HasMany
+    {
+        return $this->hasMany(MessageHistory::class, 'mother_id');
+    }
+
+    public function latestMessageHistory(): HasOne
+    {
+        return $this->hasOne(MessageHistory::class, 'mother_id')->latestOfMany();
     }
 
     public function role()

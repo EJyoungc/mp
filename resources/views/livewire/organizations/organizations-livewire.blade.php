@@ -65,8 +65,12 @@
                     <h3 class="card-title text-white mb-0">
                         <i class="fas fa-list-alt mr-2"></i> Organizations Directory
                     </h3>
-                    <div class="card-tools ml-auto">
+                    <div class="card-tools ml-auto d-flex align-items-center">
                         @if(auth()->user()->isSystemAdmin())
+                            <button wire:click="generateMissingAcronyms" wire:loading.attr="disabled" class="btn btn-outline-light btn-sm mr-2 shadow-sm font-weight-bold" title="Generate acronyms for all organizations that don't have one set">
+                                <span wire:loading.remove wire:target="generateMissingAcronyms"><i class="fas fa-magic mr-1 text-warning"></i> Generate Missing Acronyms</span>
+                                <span wire:loading wire:target="generateMissingAcronyms"><i class="fas fa-spinner fa-spin mr-1"></i> Generating...</span>
+                            </button>
                             <button wire:click.prevent="create" class="btn btn-light btn-sm shadow-sm font-weight-bold">
                                 <i class="fas fa-plus mr-1 text-primary"></i> Add Organization
                             </button>
@@ -121,6 +125,7 @@
                                 <tr>
                                     <th style="width: 50px;">#</th>
                                     <th>Organization</th>
+                                    <th>Acronym</th>
                                     <th>Type</th>
                                     <th>Location</th>
                                     <th>Contact</th>
@@ -151,6 +156,22 @@
                                                     @endif
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td>
+                                            @if($item->acronym)
+                                                <span class="badge badge-primary px-2 py-1 font-weight-bold text-monospace" style="font-size: 0.85rem;" title="SMS Prefix: {{ $item->acronym }}: ...">
+                                                    <i class="fas fa-tag mr-1"></i>{{ $item->acronym }}
+                                                </span>
+                                            @else
+                                                <div class="d-inline-flex align-items-center">
+                                                    <span class="badge badge-secondary px-2 py-1 text-muted mr-1">Not Set</span>
+                                                    @if(auth()->user()->isSystemAdmin() || auth()->user()->id === $item->owner_id)
+                                                        <button wire:click="generateSingleAcronym({{ $item->id }})" class="btn btn-xs btn-outline-info shadow-none" title="Auto-generate acronym for {{ $item->name }}">
+                                                            <i class="fas fa-magic"></i> Auto-set
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </td>
                                         <td>
                                             @if($item->is_pharmacy)
@@ -231,10 +252,21 @@
             <!-- Create / Edit Organization Modal -->
             <x-modal status="{{ $modal }}" title="{{ empty($organization->id) ? 'Add New Organization' : 'Edit Organization' }}">
                 <form wire:submit.prevent="store">
-                    <div class="form-group">
-                        <label for="name">Organization Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" wire:model="name" placeholder="e.g. Lilongwe Central Clinic">
-                        <x-input-error for="name" />
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="name">Organization Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" wire:model="name" placeholder="e.g. Lilongwe Central Clinic">
+                                <x-input-error for="name" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="acronym">Acronym / SMS Alias</label>
+                                <input type="text" class="form-control" wire:model="acronym" placeholder="e.g. LCC, uchembere" maxlength="30">
+                                <x-input-error for="acronym" />
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">

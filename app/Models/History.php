@@ -6,6 +6,8 @@ use App\Traits\BelongsToOrganization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Log;
 
 class History extends Model
@@ -34,6 +36,16 @@ class History extends Model
     public function mother()
     {
         return $this->belongsTo(User::class, 'mother_id');
+    }
+
+    public function messageHistories(): HasMany
+    {
+        return $this->hasMany(MessageHistory::class, 'history_id');
+    }
+
+    public function latestMessageHistory(): HasOne
+    {
+        return $this->hasOne(MessageHistory::class, 'history_id')->latestOfMany();
     }
 
     public function calculate_week()

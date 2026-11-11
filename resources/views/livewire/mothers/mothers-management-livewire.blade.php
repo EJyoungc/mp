@@ -3,8 +3,8 @@
         <div class="container-fluid">
             <div class="row mb-2 align-items-center">
                 <div class="col-sm-6">
-                    <h1 class="m-0 text-bold text-navy"><i class="fas fa-female mr-2"></i> Mothers Management</h1>
-                    <p class="text-muted mb-0">Manage and track registered mothers within your organization.</p>
+                    <h1 class="m-0 text-bold text-navy"><i class="fas fa-female mr-2 text-pink"></i> Mothers Management</h1>
+                    <p class="text-muted mb-0">Clinical pregnancy tracking, organization monitoring, and SMS tip delivery history.</p>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
@@ -18,97 +18,338 @@
 
     <section class="content">
         <div class="container-fluid">
-            <!-- Stats & Actions Row -->
-            <div class="row mb-4">
-                <div class="col-md-8">
-                    <div class="input-group shadow-sm">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+
+            <!-- KPI Dashboard Overview Cards -->
+            <div class="row mb-3">
+                <div class="col-6 col-md-3 mb-2">
+                    <div class="small-box bg-navy shadow-sm mb-0 rounded">
+                        <div class="inner p-3">
+                            <h3 class="mb-1">{{ number_format($stats['total'] ?? 0) }}</h3>
+                            <p class="mb-0 text-white-50 small text-uppercase font-weight-bold">Total Mothers</p>
                         </div>
-                        <input type="text" class="form-control border-left-0" placeholder="Search by name or phone number..." wire:model.live="search">
+                        <div class="icon"><i class="fas fa-female"></i></div>
                     </div>
                 </div>
-                <div class="col-md-4 text-right">
-                    @if(auth()->user()->isSystemAdmin() && count($selectedMothers) > 0)
-                        <button wire:click="reassign" class="btn btn-warning shadow-sm px-4 mr-2">
-                            <i class="fas fa-exchange-alt mr-2"></i> Reassign ({{ count($selectedMothers) }})
-                        </button>
-                    @endif
-                    <button wire:click="create" class="btn btn-navy shadow-sm px-4">
-                        <i class="fas fa-plus-circle mr-2"></i> Register New Mother
-                    </button>
+                <div class="col-6 col-md-3 mb-2">
+                    <div class="small-box bg-info shadow-sm mb-0 rounded">
+                        <div class="inner p-3">
+                            <h3 class="mb-1">{{ number_format($stats['withSession'] ?? 0) }}</h3>
+                            <p class="mb-0 text-white-50 small text-uppercase font-weight-bold">Active Sessions</p>
+                        </div>
+                        <div class="icon"><i class="fas fa-baby"></i></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-2">
+                    <div class="small-box bg-success shadow-sm mb-0 rounded">
+                        <div class="inner p-3">
+                            <h3 class="mb-1">{{ number_format($stats['messagesSent'] ?? 0) }}</h3>
+                            <p class="mb-0 text-white-50 small text-uppercase font-weight-bold">Tips Sent</p>
+                        </div>
+                        <div class="icon"><i class="fas fa-paper-plane"></i></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-2">
+                    <div class="small-box bg-purple shadow-sm mb-0 rounded">
+                        <div class="inner p-3">
+                            <h3 class="mb-1">{{ number_format($stats['orgsRepresented'] ?? 0) }}</h3>
+                            <p class="mb-0 text-white-50 small text-uppercase font-weight-bold">Facilities / Orgs</p>
+                        </div>
+                        <div class="icon"><i class="fas fa-hospital"></i></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Mothers Grid/Table -->
+            <!-- Filters & Actions Card -->
+            <div class="card shadow-sm border-0 mb-4 rounded-lg">
+                <div class="card-body p-3">
+                    <div class="row align-items-center">
+                        <!-- Search Box -->
+                        <div class="col-lg-3 col-md-6 mb-2">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                                </div>
+                                <input type="text" class="form-control border-left-0" placeholder="Search by name, phone, kin, org..." wire:model.live.debounce.300ms="search">
+                                @if(!empty($search))
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" wire:click="$set('search', '')"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Organization Filter (Visible to System Admin) -->
+                        @if(auth()->user()->isSystemAdmin())
+                            <div class="col-lg-3 col-md-6 mb-2">
+                                <select wire:model.live="organizationFilter" class="form-control custom-select">
+                                    <option value="">-- All Organizations --</option>
+                                    @foreach($organizations as $org)
+                                        <option value="{{ $org->id }}">
+                                            {{ $org->name }} {{ $org->acronym ? '[' . $org->acronym . ']' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+
+                        <!-- District Filter -->
+                        <div class="col-lg-2 col-md-4 mb-2">
+                            <select wire:model.live="districtFilter" class="form-control custom-select">
+                                <option value="">-- All Districts --</option>
+                                @foreach($districts as $d)
+                                    <option value="{{ $d->id }}">{{ $d->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Session / Message Status Filter -->
+                        <div class="col-lg-2 col-md-4 mb-2">
+                            <select wire:model.live="statusFilter" class="form-control custom-select">
+                                <option value="">-- All Statuses --</option>
+                                <option value="with_session">Has Active Session</option>
+                                <option value="no_session">No Active Session</option>
+                                <option value="with_messages">Has Sent SMS Tips</option>
+                            </select>
+                        </div>
+
+                        <!-- Actions & Reset -->
+                        <div class="col-lg-2 col-md-4 mb-2 text-md-right text-left d-flex justify-content-md-end justify-content-start align-items-center">
+                            @if(!empty($search) || !empty($organizationFilter) || !empty($districtFilter) || !empty($statusFilter))
+                                <button wire:click="resetFilters" class="btn btn-outline-secondary btn-sm mr-2 shadow-sm" title="Clear all active filters">
+                                    <i class="fas fa-undo mr-1"></i> Reset
+                                </button>
+                            @endif
+
+                            @if(auth()->user()->isSystemAdmin() && count($selectedMothers) > 0)
+                                <button wire:click="reassign" class="btn btn-warning btn-sm mr-2 shadow-sm font-weight-bold" title="Reassign selected mothers to another organization">
+                                    <i class="fas fa-exchange-alt mr-1"></i> Reassign ({{ count($selectedMothers) }})
+                                </button>
+                            @endif
+
+                            <button wire:click="create" class="btn btn-navy btn-sm shadow-sm font-weight-bold text-nowrap">
+                                <i class="fas fa-plus-circle mr-1"></i> Register Mother
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Filter Badges Indicator -->
+            @if(!empty($organizationFilter) || !empty($districtFilter) || !empty($statusFilter) || !empty($search))
+                <div class="mb-3 d-flex align-items-center flex-wrap">
+                    <span class="small font-weight-bold text-muted mr-2"><i class="fas fa-filter text-primary mr-1"></i> Active Filters:</span>
+                    @if(!empty($organizationFilter))
+                        @php
+                            $filteredOrg = $organizations->firstWhere('id', $organizationFilter);
+                        @endphp
+                        <span class="badge badge-primary px-2 py-1 mr-2 mb-1">
+                            Org: {{ $filteredOrg->name ?? 'ID: ' . $organizationFilter }} {{ $filteredOrg && $filteredOrg->acronym ? '(' . $filteredOrg->acronym . ')' : '' }}
+                            <i class="fas fa-times ml-1 cursor-pointer" wire:click="$set('organizationFilter', '')"></i>
+                        </span>
+                    @endif
+                    @if(!empty($districtFilter))
+                        @php
+                            $filteredDist = $districts->firstWhere('id', $districtFilter);
+                        @endphp
+                        <span class="badge badge-info px-2 py-1 mr-2 mb-1">
+                            District: {{ $filteredDist->name ?? 'Selected' }}
+                            <i class="fas fa-times ml-1 cursor-pointer" wire:click="$set('districtFilter', '')"></i>
+                        </span>
+                    @endif
+                    @if(!empty($statusFilter))
+                        <span class="badge badge-secondary px-2 py-1 mr-2 mb-1">
+                            Status: {{ ucfirst(str_replace('_', ' ', $statusFilter)) }}
+                            <i class="fas fa-times ml-1 cursor-pointer" wire:click="$set('statusFilter', '')"></i>
+                        </span>
+                    @endif
+                    @if(!empty($search))
+                        <span class="badge badge-light border px-2 py-1 mr-2 mb-1 text-dark">
+                            Search: "{{ $search }}"
+                            <i class="fas fa-times ml-1 cursor-pointer text-danger" wire:click="$set('search', '')"></i>
+                        </span>
+                    @endif
+                    <a href="javascript:void(0)" wire:click="resetFilters" class="small text-danger font-weight-bold ml-1 mb-1">Clear All</a>
+                </div>
+            @endif
+
+            <!-- Mothers Directory Card -->
             <div class="card shadow-sm border-0 rounded-lg overflow-hidden">
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+
+                    <!-- DESKTOP / TABLET VIEW (TABLE) -->
+                    <div class="table-responsive d-none d-lg-block">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light text-navy">
+                            <thead class="thead-light">
                                 <tr>
                                     @if(auth()->user()->isSystemAdmin())
-                                        <th class="px-4 py-3 border-0" style="width: 50px;">
+                                        <th class="px-3 py-3 border-0" style="width: 40px;">
                                             <div class="custom-control custom-checkbox">
                                                 <input type="checkbox" class="custom-control-input" id="selectAll" wire:model.live="selectAll">
                                                 <label class="custom-control-label" for="selectAll"></label>
                                             </div>
                                         </th>
                                     @endif
-                                    <th class="px-4 py-3 border-0">Mother Info</th>
-                                    <th class="py-3 border-0">Contact Details</th>
-                                    <th class="py-3 border-0">Status</th>
-                                    <th class="py-3 border-0 text-center">Actions</th>
+                                    <th class="px-3 py-3 border-0">Mother & Demographics</th>
+                                    <th class="py-3 border-0">Organization & Acronym</th>
+                                    <th class="py-3 border-0">Pregnancy Session</th>
+                                    <th class="py-3 border-0" style="min-width: 290px;">Latest Session Tip & SMS Sent</th>
+                                    <th class="py-3 border-0 text-right pr-3" style="min-width: 140px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($mothers as $mother)
-                                    <tr wire:key="mother-{{ $mother->id }}">
+                                    <tr wire:key="mother-desktop-{{ $mother->id }}">
                                         @if(auth()->user()->isSystemAdmin())
-                                            <td class="px-4 py-3 border-top-0">
+                                            <td class="px-3 py-3 border-top-0 align-middle">
                                                 <div class="custom-control custom-checkbox">
                                                     <input type="checkbox" class="custom-control-input" id="mother-{{ $mother->id }}" value="{{ $mother->id }}" wire:model.live="selectedMothers">
                                                     <label class="custom-control-label" for="mother-{{ $mother->id }}"></label>
                                                 </div>
                                             </td>
                                         @endif
-                                        <td class="px-4 py-3 border-top-0">
+
+                                        <!-- Mother & Contact Details -->
+                                        <td class="px-3 py-3 border-top-0 align-middle">
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar-circle bg-soft-navy text-navy mr-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 50%; background: #eef2f7; font-weight: bold;">
+                                                <div class="avatar-circle bg-soft-navy text-navy mr-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; border-radius: 50%; background: #eef2f7; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">
                                                     {{ strtoupper(substr($mother->name, 0, 1)) }}
                                                 </div>
                                                 <div>
-                                                    <h6 class="mb-0 font-weight-bold">{{ $mother->name }}</h6>
-                                                    <small class="text-muted"><i class="fas fa-birthday-cake mr-1"></i> {{ \Carbon\Carbon::parse($mother->date_of_birth)->format('M d, Y') }} ({{ $mother->age }} yrs)</small>
+                                                    <a href="{{ route('mothers.show', \App\Helper\StandardData::encrypt($mother->id)) }}" class="font-weight-bold text-navy text-decoration-none">
+                                                        {{ $mother->name }}
+                                                    </a>
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-birthday-cake mr-1 text-secondary"></i> {{ \Carbon\Carbon::parse($mother->date_of_birth)->format('M d, Y') }} ({{ $mother->age }} yrs)
+                                                    </div>
+                                                    <div class="small mt-1">
+                                                        <a href="tel:{{ $mother->phone }}" class="text-info font-weight-bold">
+                                                            <i class="fas fa-phone-alt mr-1"></i> {{ $mother->phone }}
+                                                        </a>
+                                                    </div>
+                                                    @if($mother->district || $mother->area)
+                                                        <div class="small text-muted mt-1">
+                                                            <i class="fas fa-map-marker-alt text-danger mr-1"></i> {{ $mother->district->name ?? '' }}{{ $mother->area ? ', ' . $mother->area->name : '' }}
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="py-3 border-top-0">
-                                            <div class="mb-1 small"><i class="fas fa-phone-alt mr-2 text-info"></i> {{ $mother->phone }}</div>
-                                            <div class="small text-muted"><i class="fas fa-map-marker-alt mr-2"></i> {{ $mother->address }}</div>
-                                            @if($mother->district || $mother->area)
-                                                <div class="small text-muted">
-                                                    <i class="fas fa-location-arrow mr-2 text-secondary"></i>
-                                                    {{ $mother->district->name ?? '' }}{{ $mother->area ? ', ' . $mother->area->name : '' }}
+
+                                        <!-- Organization & Acronym -->
+                                        <td class="py-3 border-top-0 align-middle">
+                                            @if($mother->organization)
+                                                <div class="font-weight-bold text-dark mb-1">
+                                                    {{ $mother->organization->name }}
                                                 </div>
+                                                @if($mother->organization->acronym)
+                                                    <span class="badge badge-primary px-2 py-1 font-weight-bold text-monospace" title="Organization SMS Prefix">
+                                                        <i class="fas fa-tag mr-1 text-xs"></i>{{ $mother->organization->acronym }}
+                                                    </span>
+                                                @else
+                                                    <span class="badge badge-light border text-muted px-2 py-1">No Acronym</span>
+                                                @endif
+                                            @else
+                                                <span class="badge badge-secondary px-2 py-1">Unassigned</span>
                                             @endif
                                         </td>
-                                        <td class="py-3 border-top-0">
-                                            <span class="badge badge-pill badge-info px-2 py-1" style="font-weight: 500;">
-                                                {{ $mother->organization->name ?? 'N/A' }}
-                                            </span>
+
+                                        <!-- Pregnancy Session Info -->
+                                        <td class="py-3 border-top-0 align-middle">
+                                            @if($mother->latestHistory)
+                                                @php
+                                                    $weekData = $mother->latestHistory->calculate_weekv2();
+                                                    $gestWeeks = $weekData['weeks'] ?? 0;
+                                                    $dayInWeek = $weekData['day_in_week'] ?? 1;
+                                                @endphp
+                                                <div>
+                                                    <span class="badge badge-info px-2 py-1 font-weight-bold">
+                                                        <i class="fas fa-baby mr-1"></i> Week {{ $gestWeeks }}, Day {{ $dayInWeek }}
+                                                    </span>
+                                                    @if($gestWeeks <= 13)
+                                                        <span class="badge badge-light border text-info px-2 py-1 ml-1">1st Tri</span>
+                                                    @elseif($gestWeeks <= 27)
+                                                        <span class="badge badge-light border text-primary px-2 py-1 ml-1">2nd Tri</span>
+                                                    @else
+                                                        <span class="badge badge-light border text-purple px-2 py-1 ml-1">3rd Tri</span>
+                                                    @endif
+                                                </div>
+                                                <div class="small text-muted mt-1">
+                                                    <i class="far fa-calendar-alt mr-1"></i> LMP: {{ \Carbon\Carbon::parse($mother->latestHistory->last_menstrual_cycle)->format('M d, Y') }}
+                                                </div>
+                                                <div class="small text-secondary mt-1">
+                                                    <i class="fas fa-child mr-1"></i> Infant #{{ $mother->latestHistory->infant_number ?? 1 }}
+                                                </div>
+                                            @else
+                                                <span class="badge badge-warning text-dark px-2 py-1">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i> No Session
+                                                </span>
+                                                <div class="small text-muted mt-1 font-italic">No pregnancy registered</div>
+                                            @endif
                                         </td>
-                                        <td class="py-3 border-top-0 text-center">
+
+                                        <!-- Latest Message Sent & Tip Content -->
+                                        <td class="py-3 border-top-0 align-middle">
+                                            @if($mother->latestMessageHistory)
+                                                @php
+                                                    $latestMsg = $mother->latestMessageHistory;
+                                                    $rawTip = $latestMsg->tip?->tip ?? $latestMsg->api_response['message'] ?? 'Pregnancy Health Tip';
+                                                    $msgAcronym = $latestMsg->organization?->acronym ?? $mother->organization?->acronym;
+                                                    $formattedTip = \App\Services\SmsService::formatWithAcronym($rawTip, $msgAcronym);
+                                                @endphp
+                                                <div class="p-2 rounded bg-light border-left border-primary shadow-2xs" style="border-left-width: 4px !important; font-size: 0.85rem;">
+                                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                                        @if($latestMsg->message_status === 'sent')
+                                                            <span class="badge badge-success px-2 py-0"><i class="fas fa-check-circle mr-1"></i> Sent</span>
+                                                        @elseif($latestMsg->message_status === 'failed')
+                                                            <span class="badge badge-danger px-2 py-0"><i class="fas fa-times-circle mr-1"></i> Failed</span>
+                                                        @else
+                                                            <span class="badge badge-warning px-2 py-0"><i class="fas fa-clock mr-1"></i> {{ ucfirst($latestMsg->message_status) }}</span>
+                                                        @endif
+                                                        <small class="text-muted"><i class="far fa-clock mr-1"></i> {{ $latestMsg->created_at->diffForHumans() }}</small>
+                                                    </div>
+
+                                                    <div class="text-dark font-italic mb-1" style="max-height: 48px; overflow: hidden; line-height: 1.3;" title="{{ $formattedTip }}">
+                                                        &ldquo;{{ Str::limit($formattedTip, 80) }}&rdquo;
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-between align-items-center small mt-1">
+                                                        <span class="badge badge-secondary px-1 text-xs">
+                                                            Wk {{ $latestMsg->week?->week ?? $latestMsg->week_id ?? '-' }} &bull; D {{ $latestMsg->day?->day ?? $latestMsg->day_id ?? '-' }}
+                                                        </span>
+                                                        <a href="{{ route('mothers.history.show', ['mother_id' => $mother->id, 'session_id' => $latestMsg->history_id ?? $mother->latestHistory?->id]) }}" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
+                                                            View Session SMS &rarr;
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            @elseif($mother->latestHistory)
+                                                <div class="p-2 rounded bg-light border text-muted small" style="max-width: 280px;">
+                                                    <div><i class="fas fa-envelope-open-text text-secondary mr-1"></i> <em>No tips sent yet</em></div>
+                                                    <a href="{{ route('mothers.history.show', ['mother_id' => $mother->id, 'session_id' => $mother->latestHistory->id]) }}" class="btn btn-xs btn-outline-primary mt-1">
+                                                        <i class="fas fa-paper-plane mr-1"></i> Open Session & Send
+                                                    </a>
+                                                </div>
+                                            @else
+                                                <span class="text-muted small font-italic"><i class="fas fa-comment-slash mr-1"></i> No SMS activity</span>
+                                            @endif
+                                        </td>
+
+                                        <!-- Actions -->
+                                        <td class="py-3 border-top-0 align-middle text-right pr-3">
                                             <div class="btn-group shadow-sm rounded">
-                                                <a href="{{ route('mothers.show', \App\Helper\StandardData::encrypt($mother->id)) }}" class="btn btn-white btn-sm px-3" title="View Profile">
+                                                <a href="{{ route('mothers.show', \App\Helper\StandardData::encrypt($mother->id)) }}" class="btn btn-white btn-sm px-2" title="View Profile">
                                                     <i class="fas fa-eye text-primary"></i>
                                                 </a>
-                                                <button wire:click="edit({{ $mother->id }})" class="btn btn-white btn-sm px-3" title="Edit">
+                                                @if($mother->latestHistory)
+                                                    <a href="{{ route('mothers.history.show', ['mother_id' => $mother->id, 'session_id' => $mother->latestHistory->id]) }}" class="btn btn-white btn-sm px-2" title="Session SMS Log">
+                                                        <i class="fas fa-history text-success"></i>
+                                                    </a>
+                                                @endif
+                                                <button wire:click="edit({{ $mother->id }})" class="btn btn-white btn-sm px-2" title="Edit Profile">
                                                     <i class="fas fa-edit text-info"></i>
                                                 </button>
                                                 <button wire:click="delete({{ $mother->id }})"
                                                         wire:confirm="Are you sure you want to delete this mother record? This will also remove her pregnancy history."
-                                                        class="btn btn-white btn-sm px-3" title="Delete">
+                                                        class="btn btn-white btn-sm px-2" title="Delete Mother">
                                                     <i class="fas fa-trash text-danger"></i>
                                                 </button>
                                             </div>
@@ -116,10 +357,15 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-5">
+                                        <td colspan="{{ auth()->user()->isSystemAdmin() ? 6 : 5 }}" class="text-center py-5">
                                             <div class="py-4">
                                                 <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
                                                 <h5 class="text-muted">No mothers found matching your criteria.</h5>
+                                                @if(!empty($organizationFilter) || !empty($districtFilter) || !empty($statusFilter) || !empty($search))
+                                                    <button wire:click="resetFilters" class="btn btn-outline-primary btn-sm mt-2">
+                                                        <i class="fas fa-undo mr-1"></i> Clear Filters
+                                                    </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -127,9 +373,173 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- MOBILE / TABLET VIEW (RESPONSIVE CARDS) -->
+                    <div class="d-block d-lg-none p-3">
+                        @forelse($mothers as $mother)
+                            <div class="card shadow-sm border rounded-lg mb-3" wire:key="mother-mobile-{{ $mother->id }}">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        @if(auth()->user()->isSystemAdmin())
+                                            <div class="custom-control custom-checkbox mr-2">
+                                                <input type="checkbox" class="custom-control-input" id="mother-mobile-check-{{ $mother->id }}" value="{{ $mother->id }}" wire:model.live="selectedMothers">
+                                                <label class="custom-control-label" for="mother-mobile-check-{{ $mother->id }}"></label>
+                                            </div>
+                                        @endif
+                                        <div class="avatar-circle bg-soft-navy text-navy mr-2 d-flex align-items-center justify-content-center font-weight-bold" style="width: 36px; height: 36px; border-radius: 50%; background: #eef2f7;">
+                                            {{ strtoupper(substr($mother->name, 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <a href="{{ route('mothers.show', \App\Helper\StandardData::encrypt($mother->id)) }}" class="font-weight-bold text-navy text-decoration-none">
+                                                {{ $mother->name }}
+                                            </a>
+                                            <div class="text-muted" style="font-size: 0.75rem;">
+                                                {{ $mother->age }} yrs &bull; <i class="fas fa-birthday-cake"></i> {{ \Carbon\Carbon::parse($mother->date_of_birth)->format('M d, Y') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        @if($mother->organization && $mother->organization->acronym)
+                                            <span class="badge badge-primary px-2 py-1 font-weight-bold text-monospace" style="font-size: 0.8rem;">
+                                                <i class="fas fa-tag mr-1 text-xs"></i>{{ $mother->organization->acronym }}
+                                            </span>
+                                        @elseif($mother->organization)
+                                            <span class="badge badge-info px-2 py-1" style="font-size: 0.75rem;">
+                                                {{ Str::limit($mother->organization->name, 12) }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="card-body p-3">
+                                    <!-- Contact & Location Pills -->
+                                    <div class="mb-2 d-flex flex-wrap align-items-center">
+                                        <a href="tel:{{ $mother->phone }}" class="badge badge-light border text-info px-2 py-1 mr-2 mb-1" style="font-size: 0.82rem;">
+                                            <i class="fas fa-phone-alt mr-1"></i> {{ $mother->phone }}
+                                        </a>
+                                        @if($mother->district || $mother->area)
+                                            <span class="badge badge-light border text-secondary px-2 py-1 mr-2 mb-1" style="font-size: 0.82rem;">
+                                                <i class="fas fa-map-marker-alt text-danger mr-1"></i> {{ $mother->district->name ?? '' }}{{ $mother->area ? ', ' . $mother->area->name : '' }}
+                                            </span>
+                                        @endif
+                                        @if($mother->next_of_kin)
+                                            <span class="badge badge-light border text-muted px-2 py-1 mb-1" style="font-size: 0.82rem;">
+                                                <i class="fas fa-user-friends mr-1"></i> Kin: {{ $mother->next_of_kin }} ({{ $mother->next_of_kin_mobile ?? '-' }})
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Pregnancy Session Info -->
+                                    <div class="mb-2 p-2 rounded bg-light border">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small font-weight-bold text-navy"><i class="fas fa-baby mr-1 text-pink"></i> Pregnancy Status:</span>
+                                            @if($mother->latestHistory)
+                                                @php
+                                                    $weekData = $mother->latestHistory->calculate_weekv2();
+                                                    $gestWeeks = $weekData['weeks'] ?? 0;
+                                                    $dayInWeek = $weekData['day_in_week'] ?? 1;
+                                                @endphp
+                                                <span class="badge badge-info px-2 py-0">Week {{ $gestWeeks }}, Day {{ $dayInWeek }}</span>
+                                            @else
+                                                <span class="badge badge-warning text-dark px-2 py-0">No Session</span>
+                                            @endif
+                                        </div>
+                                        @if($mother->latestHistory)
+                                            <div class="small text-muted d-flex justify-content-between">
+                                                <span>LMP: {{ \Carbon\Carbon::parse($mother->latestHistory->last_menstrual_cycle)->format('M d, Y') }}</span>
+                                                <span class="font-weight-bold">Infant #{{ $mother->latestHistory->infant_number ?? 1 }}</span>
+                                            </div>
+                                        @else
+                                            <div class="small text-muted font-italic">No pregnancy session currently registered.</div>
+                                        @endif
+                                    </div>
+
+                                    <!-- Latest Message Sent -->
+                                    <div class="p-2 rounded bg-light border-left border-primary" style="border-left-width: 4px !important;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small font-weight-bold text-dark"><i class="fas fa-paper-plane text-primary mr-1"></i> Latest SMS Tip:</span>
+                                            @if($mother->latestMessageHistory)
+                                                @if($mother->latestMessageHistory->message_status === 'sent')
+                                                    <span class="badge badge-success px-2 py-0">Sent</span>
+                                                @elseif($mother->latestMessageHistory->message_status === 'failed')
+                                                    <span class="badge badge-danger px-2 py-0">Failed</span>
+                                                @else
+                                                    <span class="badge badge-warning px-2 py-0">{{ ucfirst($mother->latestMessageHistory->message_status) }}</span>
+                                                @endif
+                                            @endif
+                                        </div>
+
+                                        @if($mother->latestMessageHistory)
+                                            @php
+                                                $latestMsg = $mother->latestMessageHistory;
+                                                $rawTip = $latestMsg->tip?->tip ?? $latestMsg->api_response['message'] ?? 'Tip sent';
+                                                $msgAcronym = $latestMsg->organization?->acronym ?? $mother->organization?->acronym;
+                                                $formattedTip = \App\Services\SmsService::formatWithAcronym($rawTip, $msgAcronym);
+                                            @endphp
+                                            <div class="small text-dark font-italic mb-1">
+                                                &ldquo;{{ $formattedTip }}&rdquo;
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center text-xs text-muted">
+                                                <span><i class="far fa-clock mr-1"></i> {{ $latestMsg->created_at->diffForHumans() }} (Wk {{ $latestMsg->week?->week ?? $latestMsg->week_id ?? '-' }} &bull; D {{ $latestMsg->day?->day ?? $latestMsg->day_id ?? '-' }})</span>
+                                                <a href="{{ route('mothers.history.show', ['mother_id' => $mother->id, 'session_id' => $latestMsg->history_id ?? $mother->latestHistory?->id]) }}" class="text-primary font-weight-bold">
+                                                    Session SMS Log &rarr;
+                                                </a>
+                                            </div>
+                                        @elseif($mother->latestHistory)
+                                            <div class="small text-muted font-italic mb-1">No tips sent yet for this session.</div>
+                                            <a href="{{ route('mothers.history.show', ['mother_id' => $mother->id, 'session_id' => $mother->latestHistory->id]) }}" class="btn btn-xs btn-outline-primary">
+                                                <i class="fas fa-paper-plane mr-1"></i> Open Session & Send
+                                            </a>
+                                        @else
+                                            <div class="small text-muted font-italic">No SMS activity recorded.</div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="card-footer bg-white py-2 px-3 d-flex justify-content-between align-items-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ route('mothers.show', \App\Helper\StandardData::encrypt($mother->id)) }}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye mr-1"></i> Profile
+                                        </a>
+                                        @if($mother->latestHistory)
+                                            <a href="{{ route('mothers.history.show', ['mother_id' => $mother->id, 'session_id' => $mother->latestHistory->id]) }}" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-history mr-1"></i> SMS Log
+                                            </a>
+                                        @endif
+                                    </div>
+                                    <div class="btn-group btn-group-sm">
+                                        <button wire:click="edit({{ $mother->id }})" class="btn btn-outline-info btn-sm">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button wire:click="delete({{ $mother->id }})"
+                                                wire:confirm="Are you sure you want to delete this mother record? This will also remove her pregnancy history."
+                                                class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center py-5">
+                                <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No mothers found matching your criteria.</h5>
+                                @if(!empty($organizationFilter) || !empty($districtFilter) || !empty($statusFilter) || !empty($search))
+                                    <button wire:click="resetFilters" class="btn btn-outline-primary btn-sm mt-2">
+                                        <i class="fas fa-undo mr-1"></i> Clear Filters
+                                    </button>
+                                @endif
+                            </div>
+                        @endforelse
+                    </div>
+
                 </div>
-                <div class="card-footer bg-white border-0 py-3">
-                    {{ $mothers->links() }}
+                <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="small text-muted mb-2 mb-md-0">
+                        Showing {{ $mothers->firstItem() ?? 0 }} to {{ $mothers->lastItem() ?? 0 }} of {{ $mothers->total() }} mothers
+                    </div>
+                    <div>
+                        {{ $mothers->links() }}
+                    </div>
                 </div>
             </div>
         </div>

@@ -114,7 +114,7 @@ it('dispatches queued SMS jobs for mothers when check-messages runs during activ
     // Verify SMS Job was dispatched for this mother
     Queue::assertPushed(SendSmsTipJob::class, function ($job) use ($tip) {
         return $job->phoneNumber === $this->mother->phone &&
-               $job->message === $tip->tip;
+               str_contains($job->message, $tip->tip);
     });
 
     // Verify MessageHistory was created
@@ -293,7 +293,7 @@ it('allows clinical staff to send custom instant SMS to mother and logs delivery
     $mockSmsService->shouldReceive('sendSmsGeneric')
         ->once()
         ->withArgs(function ($historyModel, $phone, $message) use ($customText) {
-            return $phone === $this->mother->phone && $message === $customText;
+            return $phone === $this->mother->phone && str_contains($message, $customText);
         })
         ->andReturn(true);
 

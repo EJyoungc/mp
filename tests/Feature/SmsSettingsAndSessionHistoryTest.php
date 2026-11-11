@@ -1,9 +1,14 @@
 <?php
 
+use App\Actions\Fortify\CreateNewUser;
 use App\Jobs\SendSmsTipJob;
 use App\Livewire\Mothers\MotherSessionHistoryLivewire;
+use App\Livewire\Organizations\OrganizationsLivewire;
+use App\Livewire\Profile\ProfileLivewire;
 use App\Livewire\Settings\SmsSettingsLivewire;
+use App\Models\Area;
 use App\Models\DayRange;
+use App\Models\District;
 use App\Models\History;
 use App\Models\MessageHistory;
 use App\Models\Organization;
@@ -133,6 +138,49 @@ it('allows organization admin to update their own organization acronym in SMS Se
         ->assertDispatched('alert');
 
     expect($this->org->fresh()->acronym)->toBe('UW-Clinic');
+});
+
+it('allows organization admin to update acronym from user profile organization section', function () {
+    Livewire::actingAs($this->orgAdmin)
+        ->test(ProfileLivewire::class)
+        ->assertSet('org_name', 'Uchembere Wabwino Clinic')
+        ->assertSet('org_acronym', 'uchembere')
+        ->set('org_acronym', 'UWB-Updated')
+        ->call('update')
+        ->assertHasNoErrors()
+        ->assertDispatched('alert');
+
+    expect($this->org->fresh()->acronym)->toBe('UWB-Updated');
+});
+
+it('allows system admin to create and update organizations with acronym in OrganizationsLivewire', function () {
+    $district = District::create(['name' => 'Lilongwe']);
+    $area = Area::create(['name' => 'Area 18', 'district_id' => $district->id]);
+
+    Livewire::actingAs($this->systemAdmin)
+        ->test(OrganizationsLivewire::class)
+        ->call('create')
+        ->set('name', 'Kamuzu Central Hospital')
+        ->set('acronym', 'KCH')
+        ->set('district_id', $district->id)
+        ->set('area_id', $area->id)
+        ->call('store')
+        ->assertHasNoErrors();
+
+    $newOrg = Organization::where('name', 'Kamuzu Central Hospital')->first();
+    expect($newOrg)->not->toBeNull();
+    expect($newOrg->acronym)->toBe('KCH');
+
+    // Edit the acronym
+    Livewire::actingAs($this->systemAdmin)
+        ->test(OrganizationsLivewire::class)
+        ->call('create', $newOrg->id)
+        ->assertSet('acronym', 'KCH')
+        ->set('acronym', 'KCH-Lilongwe')
+        ->call('store')
+        ->assertHasNoErrors();
+
+    expect($newOrg->fresh()->acronym)->toBe('KCH-Lilongwe');
 });
 
 it('prevents regular mothers from accessing SMS Settings', function () {
@@ -336,4 +384,76 @@ it('allows sending modified text based on tip or custom SMS with multi-mother se
     // Both mothers received a new message history record
     expect(MessageHistory::where('mother_id', $this->mother->id)->count())->toBeGreaterThan(1);
     expect(MessageHistory::where('mother_id', $secondMother->id)->count())->toBe(1);
+});
+
+it('generates expected acronyms from multi-word and single-word names', function () {
+    expect(Organization::generateAcronym('Uchembere Wabwino'))->toBe('UW');
+    expect(Organization::generateAcronym('Kamuzu Central Hospital'))->toBe('KCH');
+    expect(Organization::generateAcronym("St. John's Clinic"))->toBe('SJC');
+    expect(Organization::generateAcronym('Uchembere'))->toBe('UCHE');
+    expect(Organization::generateAcronym('Apex'))->toBe('APEX');
+    expect(Organization::generateAcronym('Bio'))->toBe('BIO');
+    expect(Organization::generateAcronym(''))->toBe('');
+});
+
+it('automatically generates an acronym on registration and allows changing it later', function () {
+    $district = District::create(['name' => 'Lilongwe']);
+    $area = Area::create(['name' => 'Area 25', 'district_id' => $district->id]);
+
+    $creator = (new CreateNewUser)->create([
+        'name' => 'Org Creator User',
+        'email' => 'creator@orgexample.com',
+        'password' => 'Password123!',
+        'password_confirmation' => 'Password123!',
+        'org_action' => 'create',
+        'org_name' => 'Maternal Wellness Clinic',
+        'org_address' => 'P.O. Box 100, Lilongwe',
+        'org_district_id' => $district->id,
+        'org_area_id' => $area->id,
+    ]);
+
+    $createdOrg = Organization::where('owner_id', $creator->id)->first();
+    expect($createdOrg)->not->toBeNull();
+    expect($createdOrg->name)->toBe('Maternal Wellness Clinic');
+    // Acronym should automatically be generated from first letters: MWC
+    expect($createdOrg->acronym)->toBe('MWC');
+
+    // The user can change the acronym later in Profile Settings
+    Livewire::actingAs($creator)
+        ->test(ProfileLivewire::class)
+        ->assertSet('org_acronym', 'MWC')
+        ->set('org_acronym', 'M-WELL')
+        ->call('update')
+        ->assertHasNoErrors()
+        ->assertDispatched('alert');
+
+    $createdOrg->refresh();
+    expect($createdOrg->acronym)->toBe('M-WELL');
+
+    $creator->refresh();
+
+    // The user can also change the acronym later in SMS Settings
+    Livewire::actingAs($creator)
+        ->test(SmsSettingsLivewire::class)
+        ->assertSet('acronym', 'M-WELL')
+        ->set('acronym', 'MWC-NEW')
+        ->call('saveMyOrgAcronym')
+        ->assertHasNoErrors()
+        ->assertDispatched('alert');
+
+    $createdOrg->refresh();
+    expect($createdOrg->acronym)->toBe('MWC-NEW');
+});
+
+it('automatically generates an acronym in organization model creating hook when omitted', function () {
+    $district = District::create(['name' => 'Blantyre']);
+    $area = Area::create(['name' => 'Limbe', 'district_id' => $district->id]);
+
+    $org = Organization::create([
+        'name' => 'Chikondi Health Center',
+        'district_id' => $district->id,
+        'area_id' => $area->id,
+    ]);
+
+    expect($org->acronym)->toBe('CHC');
 });

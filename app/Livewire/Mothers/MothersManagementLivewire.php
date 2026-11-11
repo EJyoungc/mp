@@ -6,6 +6,7 @@ use App\Helper\StandardData as SD;
 use App\Models\Area;
 use App\Models\District;
 use App\Models\History;
+use App\Models\MessageHistory;
 use App\Models\Organization;
 use App\Models\Role;
 use App\Models\User;
@@ -26,6 +27,12 @@ class MothersManagementLivewire extends Component
     protected $paginationTheme = 'bootstrap';
 
     public $search = '';
+
+    public $organizationFilter = '';
+
+    public $statusFilter = '';
+
+    public $districtFilter = '';
 
     public $perPage = 10;
 
@@ -117,8 +124,29 @@ class MothersManagementLivewire extends Component
         }
     }
 
-    public function updatingSearch()
+    public function updatingSearch(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatingOrganizationFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDistrictFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'organizationFilter', 'statusFilter', 'districtFilter']);
         $this->resetPage();
     }
 
@@ -142,10 +170,24 @@ class MothersManagementLivewire extends Component
             if (! $user->isSystemAdmin()) {
                 $query->where('organization_id', $user->organization_id);
             }
+            if (! empty($this->organizationFilter)) {
+                $query->where('organization_id', $this->organizationFilter);
+            }
+            if (! empty($this->districtFilter)) {
+                $query->where('district_id', $this->districtFilter);
+            }
+            if ($this->statusFilter === 'with_session') {
+                $query->has('histories');
+            } elseif ($this->statusFilter === 'no_session') {
+                $query->doesntHave('histories');
+            } elseif ($this->statusFilter === 'with_messages') {
+                $query->has('messageHistories');
+            }
             $query->when($this->search, function ($q) {
-                $q->where(function ($sub) {
-                    $sub->where('name', 'like', '%'.$this->search.'%')
-                        ->orWhere('phone', 'like', '%'.$this->search.'%');
+                $s = trim($this->search);
+                $q->where(function ($sub) use ($s) {
+                    $sub->where('name', 'like', "%{$s}%")
+                        ->orWhere('phone', 'like', "%{$s}%");
                 });
             });
 
@@ -431,29 +473,98 @@ class MothersManagementLivewire extends Component
     public function render()
     {
         $user = auth()->user();
-        $query = User::where('role_id', 4);
+        $baseQuery = User::where('role_id', 4);
 
         if (! $user->isSystemAdmin()) {
-            $query->where('organization_id', $user->organization_id);
+            $baseQuery->where('organization_id', $user->organization_id);
         }
 
-        $query->when($this->search, function ($q) {
-            $q->where(function ($sub) {
-                $sub->where('name', 'like', '%'.$this->search.'%')
-                    ->orWhere('phone', 'like', '%'.$this->search.'%');
-            });
-        });
+        // Dashboard KPI calculations
+        $totalMothers = (clone $baseQuery)->count();
+        $mothersWithSession = (clone $baseQuery)->has('histories')->count();
+        $mothersWithoutSession = $totalMothers - $mothersWithSession;
 
-        $mothers = $query->with(['organization', 'role', 'district', 'area'])->latest()->paginate($this->perPage);
+        $orgScopeIds = (clone $baseQuery)->pluck('organization_id')->filter()->unique();
+        $totalOrgsRepresented = $user->isSystemAdmin()
+            ? Organization::where('is_pharmacy', false)->count()
+            : $orgScopeIds->count();
+
+        $motherIds = (clone $baseQuery)->pluck('id');
+        $totalMessagesSent = MessageHistory::whereIn('mother_id', $motherIds)
+            ->where('message_status', 'sent')
+            ->count();
+
+        $query = (clone $baseQuery);
+
+        // Filter by organization (System Admin or general filter)
+        if (! empty($this->organizationFilter)) {
+            $query->where('organization_id', $this->organizationFilter);
+        }
+
+        // Filter by district
+        if (! empty($this->districtFilter)) {
+            $query->where('district_id', $this->districtFilter);
+        }
+
+        // Filter by session / message status
+        if ($this->statusFilter === 'with_session') {
+            $query->has('histories');
+        } elseif ($this->statusFilter === 'no_session') {
+            $query->doesntHave('histories');
+        } elseif ($this->statusFilter === 'with_messages') {
+            $query->has('messageHistories');
+        }
+
+        // Search
+        if (! empty($this->search)) {
+            $s = trim($this->search);
+            $query->where(function ($sub) use ($s) {
+                $sub->where('name', 'like', "%{$s}%")
+                    ->orWhere('phone', 'like', "%{$s}%")
+                    ->orWhere('email', 'like', "%{$s}%")
+                    ->orWhere('address', 'like', "%{$s}%")
+                    ->orWhere('next_of_kin', 'like', "%{$s}%")
+                    ->orWhere('next_of_kin_mobile', 'like', "%{$s}%")
+                    ->orWhereHas('organization', function ($oq) use ($s) {
+                        $oq->where('name', 'like', "%{$s}%")
+                            ->orWhere('acronym', 'like', "%{$s}%");
+                    })
+                    ->orWhereHas('district', function ($dq) use ($s) {
+                        $dq->where('name', 'like', "%{$s}%");
+                    })
+                    ->orWhereHas('area', function ($aq) use ($s) {
+                        $aq->where('name', 'like', "%{$s}%");
+                    });
+            });
+        }
+
+        $mothers = $query->with([
+            'organization',
+            'role',
+            'district',
+            'area',
+            'latestHistory',
+            'latestMessageHistory.tip',
+            'latestMessageHistory.week',
+            'latestMessageHistory.day',
+            'latestMessageHistory.organization',
+        ])->latest()->paginate($this->perPage);
 
         return view('livewire.mothers.mothers-management-livewire', [
             'mothers' => $mothers,
-            'districts' => District::all(),
-            'areas' => $this->district_id ? Area::where('district_id', $this->district_id)->get() : [],
+            'districts' => District::orderBy('name')->get(),
+            'areas' => $this->district_id ? Area::where('district_id', $this->district_id)->orderBy('name')->get() : [],
             'religions' => SD::getReligions(),
             'educationLevels' => SD::getEducationLevels(),
             'maritalStatuses' => SD::getMaritalStatuses(),
-            'organizations' => $user->isSystemAdmin() ? Organization::where('is_pharmacy', false)->get() : [],
+            'organizations' => $user->isSystemAdmin() ? Organization::where('is_pharmacy', false)->orderBy('name')->get() : [],
+            'stats' => [
+                'total' => $totalMothers,
+                'withSession' => $mothersWithSession,
+                'withoutSession' => $mothersWithoutSession,
+                'messagesSent' => $totalMessagesSent,
+                'orgsRepresented' => $totalOrgsRepresented,
+            ],
         ]);
     }
 }

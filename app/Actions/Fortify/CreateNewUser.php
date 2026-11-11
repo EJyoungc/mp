@@ -72,6 +72,7 @@ class CreateNewUser implements CreatesNewUsers
             } elseif ($input['org_action'] === 'create') {
                 $organization = Organization::create([
                     'name' => $input['org_name'],
+                    'acronym' => Organization::generateAcronym($input['org_name']),
                     'address' => $input['org_address'] ?? '',
                     'owner_id' => $user->id,
                     'is_pharmacy' => isset($input['is_pharmacy']),
