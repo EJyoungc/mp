@@ -364,3 +364,122 @@ it('gracefully handles and logs gateway exceptions without crashing the applicat
     expect($messageHistory->api_response)->toHaveKey('error');
     expect($messageHistory->api_response['error'])->toBe('Connection timed out');
 });
+
+it('ensures tips made by an organization are only sent to mothers registered under the same organization', function () {
+    Queue::fake();
+
+    $dayRange = DayRange::firstOrCreate(
+        ['name' => 'AllDayRange'],
+        ['start_time' => '00:00:00', 'end_time' => '23:59:59']
+    );
+
+    // Organization A
+    $orgA = Organization::create([
+        'name' => 'Uchembere Clinic',
+        'acronym' => 'UC',
+        'district_id' => $this->district->id,
+        'area_id' => $this->area->id,
+        'is_pharmacy' => false,
+    ]);
+
+    // Organization B
+    $orgB = Organization::create([
+        'name' => 'Chikondi Hospital',
+        'acronym' => 'CH',
+        'district_id' => $this->district->id,
+        'area_id' => $this->area->id,
+        'is_pharmacy' => false,
+    ]);
+
+    // Mother A in Org A
+    $motherA = User::factory()->create([
+        'name' => 'Mother A',
+        'phone' => '0991111111',
+        'role_id' => $this->motherRole->id,
+        'organization_id' => $orgA->id,
+    ]);
+
+    // Mother B in Org B
+    $motherB = User::factory()->create([
+        'name' => 'Mother B',
+        'phone' => '0992222222',
+        'role_id' => $this->motherRole->id,
+        'organization_id' => $orgB->id,
+    ]);
+
+    // Both mothers started pregnancy on the same date (~10 weeks ago)
+    $lmcDate = now()->subDays(66)->startOfDay(); // dynamically calculate week/day
+    $sessionA = History::create([
+        'mother_id' => $motherA->id,
+        'last_menstrual_cycle' => $lmcDate->format('Y-m-d'),
+        'infant_number' => 1,
+        'organization_id' => $orgA->id,
+    ]);
+
+    $sessionB = History::create([
+        'mother_id' => $motherB->id,
+        'last_menstrual_cycle' => $lmcDate->format('Y-m-d'),
+        'infant_number' => 1,
+        'organization_id' => $orgB->id,
+    ]);
+
+    $weekData = $sessionA->calculate_weekv2();
+    $weekNum = (int) $weekData['weeks'];
+    $dayNum = (int) $weekData['day_in_week'];
+
+    $trimester = Trimester::firstOrCreate(['trimester' => 1]);
+    Week::firstOrCreate(['week' => $weekNum, 'trimester_id' => $trimester->id]);
+
+    // Tip created by Org A
+    $tipA = Tip::create([
+        'tip' => 'Org A Custom Tip: Rest frequently on left side.',
+        'week_id' => $weekNum,
+        'day_id' => $dayNum,
+        'day_range_id' => $dayRange->id,
+        'organization_id' => $orgA->id,
+        'status' => Tip::STATUS_APPROVED,
+    ]);
+
+    // Tip created by Org B
+    $tipB = Tip::create([
+        'tip' => 'Org B Custom Tip: Take balanced iron supplements.',
+        'week_id' => $weekNum,
+        'day_id' => $dayNum,
+        'day_range_id' => $dayRange->id,
+        'organization_id' => $orgB->id,
+        'status' => Tip::STATUS_APPROVED,
+    ]);
+
+    $this->artisan('app:check-messages')->assertSuccessful();
+
+    // Mother A receives ONLY Tip A, never Tip B
+    Queue::assertPushed(SendSmsTipJob::class, function ($job) use ($motherA, $tipA) {
+        return $job->phoneNumber === $motherA->phone &&
+               str_contains($job->message, $tipA->tip) &&
+               str_starts_with($job->message, 'UC:');
+    });
+
+    Queue::assertNotPushed(SendSmsTipJob::class, function ($job) use ($motherA, $tipB) {
+        return $job->phoneNumber === $motherA->phone &&
+               str_contains($job->message, $tipB->tip);
+    });
+
+    // Mother B receives ONLY Tip B, never Tip A
+    Queue::assertPushed(SendSmsTipJob::class, function ($job) use ($motherB, $tipB) {
+        return $job->phoneNumber === $motherB->phone &&
+               str_contains($job->message, $tipB->tip) &&
+               str_starts_with($job->message, 'CH:');
+    });
+
+    Queue::assertNotPushed(SendSmsTipJob::class, function ($job) use ($motherB, $tipA) {
+        return $job->phoneNumber === $motherB->phone &&
+               str_contains($job->message, $tipA->tip);
+    });
+
+    // Database MessageHistory check
+    expect(MessageHistory::where('mother_id', $motherA->id)->where('tip_id', $tipA->id)->exists())->toBeTrue();
+    expect(MessageHistory::where('mother_id', $motherA->id)->where('tip_id', $tipB->id)->exists())->toBeFalse();
+
+    expect(MessageHistory::where('mother_id', $motherB->id)->where('tip_id', $tipB->id)->exists())->toBeTrue();
+    expect(MessageHistory::where('mother_id', $motherB->id)->where('tip_id', $tipA->id)->exists())->toBeFalse();
+});
