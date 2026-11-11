@@ -675,30 +675,104 @@
                                 </div>
 
                                 <!-- Custom 7-Day & Time-Frame Matrix Table -->
+                                @php
+                                    $dayThemes = [
+                                        1 => [
+                                            'accent' => '#2563eb', // Indigo Blue
+                                            'headerBg' => '#1e3a8a',
+                                            'cellBg' => '#f4f8ff',
+                                            'borderColor' => '#dbeafe',
+                                            'badgeBg' => '#dbeafe',
+                                            'badgeColor' => '#1e40af',
+                                            'lightAccent' => '#eff6ff',
+                                        ],
+                                        2 => [
+                                            'accent' => '#0d9488', // Teal
+                                            'headerBg' => '#134e4a',
+                                            'cellBg' => '#f2fbf9',
+                                            'borderColor' => '#ccfbf1',
+                                            'badgeBg' => '#ccfbf1',
+                                            'badgeColor' => '#115e59',
+                                            'lightAccent' => '#f0fdfa',
+                                        ],
+                                        3 => [
+                                            'accent' => '#d97706', // Warm Amber
+                                            'headerBg' => '#78350f',
+                                            'cellBg' => '#fdfaf2',
+                                            'borderColor' => '#fef3c7',
+                                            'badgeBg' => '#fef3c7',
+                                            'badgeColor' => '#92400e',
+                                            'lightAccent' => '#fffbeb',
+                                        ],
+                                        4 => [
+                                            'accent' => '#e11d48', // Rose Coral
+                                            'headerBg' => '#881337',
+                                            'cellBg' => '#fdf4f5',
+                                            'borderColor' => '#ffe4e6',
+                                            'badgeBg' => '#ffe4e6',
+                                            'badgeColor' => '#9f1239',
+                                            'lightAccent' => '#fff1f2',
+                                        ],
+                                        5 => [
+                                            'accent' => '#7c3aed', // Purple Violet
+                                            'headerBg' => '#4c1d95',
+                                            'cellBg' => '#f8f5fe',
+                                            'borderColor' => '#ede9fe',
+                                            'badgeBg' => '#ede9fe',
+                                            'badgeColor' => '#5b21b6',
+                                            'lightAccent' => '#f5f3ff',
+                                        ],
+                                        6 => [
+                                            'accent' => '#0284c7', // Sky Azure
+                                            'headerBg' => '#0c4a6e',
+                                            'cellBg' => '#f2f9fe',
+                                            'borderColor' => '#e0f2fe',
+                                            'badgeBg' => '#e0f2fe',
+                                            'badgeColor' => '#0369a1',
+                                            'lightAccent' => '#f0f9ff',
+                                        ],
+                                        7 => [
+                                            'accent' => '#059669', // Emerald Sage
+                                            'headerBg' => '#064e3b',
+                                            'cellBg' => '#f2fcf7',
+                                            'borderColor' => '#d1fae5',
+                                            'badgeBg' => '#d1fae5',
+                                            'badgeColor' => '#065f46',
+                                            'lightAccent' => '#ecfdf5',
+                                        ],
+                                    ];
+                                @endphp
+
                                 <div class="card border shadow-sm rounded-lg overflow-hidden mb-4">
                                     <div class="table-responsive">
-                                        <table class="table table-bordered mb-0 calendar-schedule-table" style="min-width: 980px;">
-                                            <thead class="text-white text-center" style="background-color: #1a252f;">
+                                        <table class="table table-bordered mb-0 calendar-schedule-table" style="min-width: 1020px; border-collapse: separate; border-spacing: 0;">
+                                            <thead class="text-white text-center">
                                                 <tr>
-                                                    <th style="width: 150px; vertical-align: middle; background-color: #151e27;" class="text-uppercase small font-weight-bold py-2">
+                                                    <!-- Time Frame Column Header -->
+                                                    <th style="width: 155px; vertical-align: middle; background-color: #0f172a; border-right: 2px solid #cbd5e1; border-top: 3px solid #64748b;" class="text-uppercase small font-weight-bold py-3">
                                                         <i class="far fa-clock mr-1 text-warning"></i> Time Frame
                                                     </th>
                                                     @for($d = 1; $d <= 7; $d++)
                                                         @php
                                                             $dayNum = (($calendarWeek?->week ?? 1) - 1) * 7 + $d;
                                                             $countForDay = $dayTipsCount[$d] ?? 0;
+                                                            $theme = $dayThemes[$d];
                                                         @endphp
-                                                        <th style="width: 12.1%; vertical-align: middle;" class="px-2 py-2">
-                                                            <div class="font-weight-bold" style="font-size: 0.95rem;">Day {{ $d }}</div>
-                                                            <div class="text-xs text-white-50">Day {{ $dayNum }}</div>
+                                                        <th style="width: 12.07%; vertical-align: middle; background-color: {{ $theme['headerBg'] }}; border-top: 3px solid {{ $theme['accent'] }}; border-bottom: 2px solid {{ $theme['accent'] }}; border-right: 1px solid {{ $theme['borderColor'] }};" class="px-2 py-3">
+                                                            <div class="font-weight-bold text-white" style="font-size: 0.98rem; letter-spacing: 0.5px;">
+                                                                Day {{ $d }}
+                                                            </div>
+                                                            <div class="text-xs text-white-50 font-weight-normal mt-0">
+                                                                Pregnancy Day {{ $dayNum }}
+                                                            </div>
                                                             <div class="mt-1">
                                                                 @if($countForDay > 0)
-                                                                    <span class="badge badge-pill badge-warning text-dark font-weight-bold px-2 py-0 text-xs">
-                                                                        {{ $countForDay }} {{ Str::plural('Tip', $countForDay) }}
+                                                                    <span class="badge badge-pill font-weight-bold px-2 py-1 text-xs shadow-xs" style="background-color: {{ $theme['badgeBg'] }}; color: {{ $theme['badgeColor'] }};">
+                                                                        <i class="fas fa-check-circle mr-1"></i> {{ $countForDay }} {{ Str::plural('Tip', $countForDay) }}
                                                                     </span>
                                                                 @else
-                                                                    <span class="badge badge-pill badge-secondary text-white-50 px-2 py-0 text-xs">
-                                                                        Empty
+                                                                    <span class="badge badge-pill font-weight-normal px-2 py-1 text-xs" style="background-color: rgba(255, 255, 255, 0.18); color: #f1f5f9;">
+                                                                        No tips
                                                                     </span>
                                                                 @endif
                                                             </div>
@@ -706,11 +780,11 @@
                                                     @endfor
                                                 </tr>
                                             </thead>
-                                            <tbody class="bg-white">
+                                            <tbody>
                                                 @foreach($calendarDayRanges as $range)
                                                     <tr>
                                                         <!-- Time Frame Header Cell -->
-                                                        <td class="bg-light align-middle text-center p-2 font-weight-bold text-dark border-right" style="vertical-align: middle;">
+                                                        <td class="align-middle text-center p-2 font-weight-bold text-dark" style="vertical-align: middle; background-color: #f8fafc; border-right: 2px solid #cbd5e1; border-bottom: 1px solid #e2e8f0;">
                                                             <div class="text-navy font-weight-bold" style="font-size: 0.9rem;">
                                                                 @if(str_contains(strtolower($range->name), 'morning'))
                                                                     <i class="fas fa-sun text-warning mr-1"></i>
@@ -725,29 +799,32 @@
                                                             </div>
                                                             @if(!empty($range->start_time) && !empty($range->end_time))
                                                                 <div class="text-muted text-xs font-weight-normal mt-1">
-                                                                    {{ \Carbon\Carbon::parse($range->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($range->end_time)->format('h:i A') }}
+                                                                    {{ \Carbon\Carbon::parse($range->start_time)->format('h:i A') }} &ndash; {{ \Carbon\Carbon::parse($range->end_time)->format('h:i A') }}
                                                                 </div>
                                                             @endif
                                                         </td>
 
-                                                        <!-- 7 Days Slots -->
+                                                        <!-- 7 Days Slots with distinct background colors -->
                                                         @for($d = 1; $d <= 7; $d++)
                                                             @php
+                                                                $theme = $dayThemes[$d];
                                                                 $slotTips = $calendarMatrix[$d][$range->id] ?? [];
                                                             @endphp
-                                                            <td class="p-2 align-top text-left" style="vertical-align: top; {{ count($slotTips) > 0 ? 'background-color: #faf8ff;' : '' }}">
+                                                            <td class="p-2 align-top text-left"
+                                                                style="vertical-align: top; background-color: {{ $theme['cellBg'] }}; border-color: {{ $theme['borderColor'] }}; transition: background 0.15s ease-in-out;">
                                                                 @if(count($slotTips) > 0)
                                                                     @foreach($slotTips as $st)
                                                                         @php
                                                                             $userOrgAcronym = auth()->user()->organization?->acronym;
                                                                             $slotPreview = $userOrgAcronym ? \App\Services\SmsService::formatWithAcronym($st->tip, $userOrgAcronym) : null;
                                                                         @endphp
-                                                                        <div class="card shadow-xs mb-2 border rounded p-2" style="border-left: 3px solid #6f42c1 !important; background: #ffffff;">
+                                                                        <div class="card mb-2 rounded p-2"
+                                                                             style="border: 1px solid {{ $theme['borderColor'] }}; border-left: 3.5px solid {{ $theme['accent'] }} !important; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
                                                                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                                <span class="badge text-white px-1 text-xs" style="background-color: #6f42c1;">
+                                                                                <span class="badge text-white px-1 text-xs font-weight-bold" style="background-color: {{ $theme['accent'] }}; font-size: 0.72rem;">
                                                                                     #{{ $st->id }}
                                                                                 </span>
-                                                                                <span class="text-muted text-xs">
+                                                                                <span class="badge badge-light border text-secondary px-1 text-xs font-weight-bold" style="font-size: 0.7rem;">
                                                                                     {{ strlen($st->tip) }}/160
                                                                                 </span>
                                                                             </div>
@@ -758,14 +835,17 @@
 
                                                                             @if($slotPreview)
                                                                                 <div class="text-xs text-muted font-italic mb-1 text-truncate" title="SMS: {{ $slotPreview }}">
-                                                                                    <i class="fas fa-sms text-info mr-1"></i>{{ Str::limit($slotPreview, 35) }}
+                                                                                    <i class="fas fa-sms text-info mr-1"></i>{{ Str::limit($slotPreview, 32) }}
                                                                                 </div>
                                                                             @endif
 
                                                                             <!-- Slot Action Buttons -->
                                                                             <div class="d-flex justify-content-between align-items-center pt-1 border-top mt-1">
                                                                                 @if(auth()->user()->organization_id)
-                                                                                    <button type="button" wire:click="useTemplate({{ $st->id }})" class="btn btn-xs text-white font-weight-bold px-2 shadow-none" style="background-color: #6f42c1;" title="Adopt this template for my organization">
+                                                                                    <button type="button" wire:click="useTemplate({{ $st->id }})"
+                                                                                            class="btn btn-xs text-white font-weight-bold px-2 shadow-none"
+                                                                                            style="background-color: {{ $theme['accent'] }}; font-size: 0.74rem;"
+                                                                                            title="Adopt this template for my organization">
                                                                                         <i class="fas fa-copy mr-1"></i> Adopt
                                                                                     </button>
                                                                                 @endif
@@ -790,11 +870,12 @@
                                                                         </div>
                                                                     @endforeach
 
-                                                                    <!-- Add another tip to this slot -->
+                                                                    <!-- Add another tip to this slot (System Admin) -->
                                                                     @if($isSystemAdmin)
                                                                         <div class="text-center mt-1">
                                                                             <button type="button" wire:click="openCreateForCalendarSlot({{ $calendarWeek?->id ?? 1 }}, {{ $d }}, {{ $range->id }})"
-                                                                                    class="btn btn-xs font-weight-bold" style="color: #6f42c1; font-size: 0.75rem;">
+                                                                                    class="btn btn-xs font-weight-bold"
+                                                                                    style="color: {{ $theme['accent'] }}; font-size: 0.75rem;">
                                                                                 <i class="fas fa-plus mr-1"></i> Add Another
                                                                             </button>
                                                                         </div>
@@ -804,15 +885,16 @@
                                                                     <div class="py-3 px-1 text-center" style="min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                                                                         @if($isSystemAdmin)
                                                                             <button type="button" wire:click="openCreateForCalendarSlot({{ $calendarWeek?->id ?? 1 }}, {{ $d }}, {{ $range->id }})"
-                                                                                    class="btn btn-xs btn-outline-secondary btn-block text-muted p-2"
-                                                                                    style="border-style: dashed; font-size: 0.78rem;"
+                                                                                    class="btn btn-xs btn-block p-2"
+                                                                                    style="border: 1px dashed {{ $theme['accent'] }}; background-color: {{ $theme['lightAccent'] }}; color: {{ $theme['accent'] }} !important; font-size: 0.78rem; font-weight: 600; border-radius: 5px;"
                                                                                     title="Add template tip for Week {{ $calendarWeek?->week ?? 1 }}, Day {{ $d }} in {{ $range->name }}">
                                                                                 <i class="fas fa-plus-circle mr-1"></i> Add Tip
                                                                             </button>
                                                                         @else
-                                                                            <span class="text-muted text-xs font-italic" style="opacity: 0.6;">
-                                                                                No tip
-                                                                            </span>
+                                                                            <div style="opacity: 0.45;">
+                                                                                <i class="far fa-calendar-times d-block mb-1" style="color: {{ $theme['accent'] }}; font-size: 1rem;"></i>
+                                                                                <span class="text-xs font-italic" style="color: {{ $theme['accent'] }};">No tip</span>
+                                                                            </div>
                                                                         @endif
                                                                     </div>
                                                                 @endif
@@ -833,7 +915,7 @@
                                                 @endphp
                                                 @if($hasFlexibleTips || $isSystemAdmin)
                                                     <tr class="border-top">
-                                                        <td class="bg-light align-middle text-center p-2 font-weight-bold text-muted border-right" style="vertical-align: middle;">
+                                                        <td class="align-middle text-center p-2 font-weight-bold text-muted" style="vertical-align: middle; background-color: #f8fafc; border-right: 2px solid #cbd5e1;">
                                                             <div class="text-secondary font-weight-bold" style="font-size: 0.85rem;">
                                                                 <i class="fas fa-arrows-alt mr-1"></i> Flexible / Anytime
                                                             </div>
@@ -842,11 +924,15 @@
                                                             </div>
                                                         </td>
                                                         @for($d = 1; $d <= 7; $d++)
-                                                            @php $flexTips = $calendarMatrix[$d][0] ?? []; @endphp
-                                                            <td class="p-2 align-top text-left" style="vertical-align: top; {{ count($flexTips) > 0 ? 'background-color: #faf8ff;' : '' }}">
+                                                            @php
+                                                                $theme = $dayThemes[$d];
+                                                                $flexTips = $calendarMatrix[$d][0] ?? [];
+                                                            @endphp
+                                                            <td class="p-2 align-top text-left" style="vertical-align: top; background-color: {{ $theme['cellBg'] }}; border-color: {{ $theme['borderColor'] }};">
                                                                 @if(count($flexTips) > 0)
                                                                     @foreach($flexTips as $st)
-                                                                        <div class="card shadow-xs mb-2 border rounded p-2" style="border-left: 3px solid #6c757d !important; background: #ffffff;">
+                                                                        <div class="card mb-2 rounded p-2"
+                                                                             style="border: 1px solid {{ $theme['borderColor'] }}; border-left: 3.5px solid #64748b !important; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
                                                                             <div class="d-flex justify-content-between align-items-center mb-1">
                                                                                 <span class="badge badge-secondary px-1 text-xs">#{{ $st->id }}</span>
                                                                                 <span class="text-muted text-xs">{{ strlen($st->tip) }}/160</span>
@@ -856,7 +942,7 @@
                                                                             </div>
                                                                             <div class="d-flex justify-content-between align-items-center pt-1 border-top mt-1">
                                                                                 @if(auth()->user()->organization_id)
-                                                                                    <button type="button" wire:click="useTemplate({{ $st->id }})" class="btn btn-xs text-white font-weight-bold px-2 shadow-none" style="background-color: #6f42c1;">
+                                                                                    <button type="button" wire:click="useTemplate({{ $st->id }})" class="btn btn-xs text-white font-weight-bold px-2 shadow-none" style="background-color: {{ $theme['accent'] }};">
                                                                                         <i class="fas fa-copy mr-1"></i> Adopt
                                                                                     </button>
                                                                                 @endif
@@ -870,7 +956,7 @@
                                                                         </div>
                                                                     @endforeach
                                                                 @else
-                                                                    <div class="text-center py-2 text-muted text-xs font-italic" style="opacity: 0.5;">-</div>
+                                                                    <div class="text-center py-2 text-muted text-xs font-italic" style="opacity: 0.4;">&ndash;</div>
                                                                 @endif
                                                             </td>
                                                         @endfor
