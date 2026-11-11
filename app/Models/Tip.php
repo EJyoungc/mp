@@ -29,6 +29,13 @@ class Tip extends Model
         'is_template',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'is_template' => 'boolean',
+        ];
+    }
+
     public function week()
     {
         return $this->belongsTo(Week::class);

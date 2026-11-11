@@ -83,13 +83,28 @@
                                 @endif
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link font-weight-bold {{ $activeTab === 'templates' ? 'active bg-navy text-white' : 'text-secondary' }} px-3"
+                               href="javascript:void(0)" wire:click="setTab('templates')">
+                                <i class="fas fa-bookmark mr-1"></i> Template Library
+                                @if($totalTemplatesCount > 0)
+                                    <span class="badge ml-1 text-white" style="background-color: #6f42c1;">{{ $totalTemplatesCount }}</span>
+                                @endif
+                            </a>
+                        </li>
                     </ul>
 
                     <!-- Action Button -->
                     <div class="my-1 mr-2">
-                        <button wire:click="openCreateModal" class="btn btn-navy btn-sm shadow-sm font-weight-bold">
-                            <i class="fas fa-plus-circle mr-1"></i> Create New Tip
-                        </button>
+                        @if($activeTab === 'templates' && $isSystemAdmin)
+                            <button wire:click="openCreateModal(true)" class="btn btn-sm shadow-sm font-weight-bold text-white" style="background-color: #6f42c1;">
+                                <i class="fas fa-plus-circle mr-1"></i> Create Template Tip
+                            </button>
+                        @else
+                            <button wire:click="openCreateModal(false)" class="btn btn-navy btn-sm shadow-sm font-weight-bold">
+                                <i class="fas fa-plus-circle mr-1"></i> Create New Tip
+                            </button>
+                        @endif
                     </div>
                 </div>
 
@@ -208,7 +223,16 @@
                                             $formattedPreview = \App\Services\SmsService::formatWithAcronym($tip->tip, $orgAcronym);
                                         @endphp
                                         <tr wire:key="tip-row-{{ $tip->id }}">
-                                            <td><strong>{{ $tip->id }}</strong></td>
+                                            <td>
+                                                <strong>{{ $tip->id }}</strong>
+                                                @if($tip->is_template)
+                                                    <div>
+                                                        <span class="badge text-white px-1 text-xs" style="background-color: #6f42c1;" title="System Template Tip">
+                                                            <i class="fas fa-bookmark"></i> Template
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </td>
 
                                             <!-- Tip Text -->
                                             <td style="max-width: 380px;">
@@ -298,6 +322,11 @@
                                             <!-- Actions -->
                                             <td class="text-right pr-3">
                                                 <div class="btn-group btn-group-sm shadow-sm rounded">
+                                                    @if($isSystemAdmin)
+                                                        <button wire:click="toggleTemplate({{ $tip->id }})" class="btn btn-white px-2" style="{{ $tip->is_template ? 'color: #6f42c1 !important;' : 'color: #6c757d !important;' }}" title="{{ $tip->is_template ? 'Remove from Template Library' : 'Mark as Template' }}">
+                                                            <i class="fas fa-bookmark"></i>
+                                                        </button>
+                                                    @endif
                                                     @if($tip->status !== \App\Models\Tip::STATUS_APPROVED && (auth()->user()->isDoctor() || auth()->user()->isSystemAdmin()))
                                                         <button wire:click="approveTip({{ $tip->id }})" class="btn btn-white text-success px-2" title="Approve Tip">
                                                             <i class="fas fa-check"></i>
@@ -509,6 +538,200 @@
                         </div>
                     @endif
 
+                    <!-- =================================================== -->
+                    <!-- TAB 3: TEMPLATE TIPS LIBRARY -->
+                    <!-- =================================================== -->
+                    @if($activeTab === 'templates')
+                        <div class="p-3 bg-light border-bottom">
+                            <!-- Banner info -->
+                            <div class="alert alert-light border shadow-sm mb-3 d-flex align-items-center justify-content-between flex-wrap p-3" style="border-left: 4px solid #6f42c1 !important;">
+                                <div class="d-flex align-items-center">
+                                    <div class="mr-3" style="font-size: 2.2rem; color: #6f42c1;">
+                                        <i class="fas fa-bookmark"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1 font-weight-bold text-navy">Maternal Health Template Tips Library</h5>
+                                        <p class="mb-0 text-muted small">
+                                            Clinically standardized maternal tips organized by gestational week and day.
+                                            @if(!auth()->user()->isSystemAdmin() && auth()->user()->organization)
+                                                Click <strong>"Adopt Template"</strong> on any tip to copy it directly into <strong>{{ auth()->user()->organization->name }}</strong>'s scheduled messaging.
+                                            @else
+                                                System Administrators can create, curate, and mark tips as global templates accessible to all health organizations.
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mt-2 mt-md-0">
+                                    <span class="badge badge-pill text-white px-3 py-2" style="background-color: #6f42c1; font-size: 0.9rem;">
+                                        <i class="fas fa-layer-group mr-1"></i> {{ $totalTemplatesCount }} Available Templates
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Filters Row -->
+                            <div class="row align-items-center">
+                                <!-- Search -->
+                                <div class="col-lg-4 col-md-6 mb-2">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                                        </div>
+                                        <input type="text" class="form-control border-left-0" placeholder="Search template content..." wire:model.live.debounce.300ms="templateSearch">
+                                        @if(!empty($templateSearch))
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary" type="button" wire:click="$set('templateSearch', '')"><i class="fas fa-times"></i></button>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Trimester Filter -->
+                                <div class="col-lg-3 col-md-6 mb-2">
+                                    <select class="form-control custom-select" wire:model.live="templateTrimesterFilter">
+                                        <option value="">All Trimesters (1 - 3)</option>
+                                        @foreach($trimesters as $tri)
+                                            <option value="{{ $tri->id }}">Trimester {{ $tri->trimester }} ({{ $tri->name }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Week Filter -->
+                                <div class="col-lg-3 col-md-6 mb-2">
+                                    <select class="form-control custom-select" wire:model.live="templateWeekFilter">
+                                        <option value="">All Gestational Weeks (1 - 42)</option>
+                                        @foreach($weeks as $wk)
+                                            @if(empty($templateTrimesterFilter) || (int)$wk->trimester_id === (int)$templateTrimesterFilter)
+                                                <option value="{{ $wk->id }}">Week {{ $wk->week }}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Reset Filters -->
+                                <div class="col-lg-2 col-md-12 mb-2 text-right">
+                                    @if(!empty($templateSearch) || !empty($templateTrimesterFilter) || !empty($templateWeekFilter))
+                                        <button wire:click="resetTemplateFilters" class="btn btn-outline-secondary btn-block">
+                                            <i class="fas fa-undo mr-1"></i> Reset
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Template Cards Grid -->
+                        <div class="p-3">
+                            <div class="row">
+                                @forelse($templates as $tpl)
+                                    @php
+                                        $userOrgAcronym = auth()->user()->organization?->acronym;
+                                        $previewWithAcronym = $userOrgAcronym ? \App\Services\SmsService::formatWithAcronym($tpl->tip, $userOrgAcronym) : null;
+                                    @endphp
+                                    <div class="col-lg-4 col-md-6 mb-3" wire:key="template-card-{{ $tpl->id }}">
+                                        <div class="card h-100 shadow-sm border rounded-lg" style="border-top: 3px solid #6f42c1 !important;">
+                                            <!-- Card Header -->
+                                            <div class="card-header bg-white py-2 px-3 border-bottom d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="badge badge-info px-2 py-1 font-weight-bold">
+                                                        Week {{ $tpl->week?->week ?? $tpl->week_id }} &bull; Day {{ $tpl->day?->day ?? $tpl->day_id }}
+                                                    </span>
+                                                    @if($tpl->week?->trimester)
+                                                        <span class="badge badge-light border text-muted ml-1">
+                                                            T{{ $tpl->week->trimester->trimester }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    <span class="badge text-white px-2 py-1" style="background-color: #6f42c1;">
+                                                        <i class="fas fa-bookmark mr-1"></i> Template #{{ $tpl->id }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Card Body -->
+                                            <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <!-- Tip Text -->
+                                                    <div class="text-dark font-weight-bold mb-2" style="font-size: 0.95rem; line-height: 1.45;">
+                                                        &ldquo;{{ $tpl->tip }}&rdquo;
+                                                    </div>
+
+                                                    <!-- Character count & timing info -->
+                                                    <div class="small text-muted mb-2 d-flex align-items-center flex-wrap">
+                                                        <span class="badge badge-light border text-secondary mr-2">
+                                                            {{ strlen($tpl->tip) }}/160 chars
+                                                        </span>
+                                                        @if($tpl->day_range)
+                                                            <span class="text-muted">
+                                                                <i class="far fa-clock text-info mr-1"></i> {{ $tpl->day_range->name }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+
+                                                    <!-- Acronym Preview if applicable -->
+                                                    @if($previewWithAcronym)
+                                                        <div class="p-2 bg-light rounded border text-xs text-muted mb-2">
+                                                            <div class="font-weight-bold text-navy mb-1">
+                                                                <i class="fas fa-mobile-alt mr-1"></i> Preview with [{{ $userOrgAcronym }}]:
+                                                            </div>
+                                                            <div class="font-italic text-dark">&ldquo;{{ $previewWithAcronym }}&rdquo;</div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                <!-- Actions Bar -->
+                                                <div class="pt-3 border-top mt-2 d-flex justify-content-between align-items-center flex-wrap">
+                                                    @if(auth()->user()->organization_id)
+                                                        <button wire:click="useTemplate({{ $tpl->id }})" class="btn btn-sm text-white font-weight-bold px-3 shadow-sm mr-2 mb-1" style="background-color: #6f42c1;" title="Copy this template to your organization">
+                                                            <i class="fas fa-copy mr-1"></i> Adopt Template
+                                                        </button>
+                                                    @endif
+
+                                                    <div class="btn-group btn-group-sm ml-auto mb-1">
+                                                        <button wire:click="openRecipientsModal({{ $tpl->id }})" class="btn btn-outline-info" title="Check Due Mothers">
+                                                            <i class="fas fa-users"></i>
+                                                        </button>
+                                                        @if($isSystemAdmin)
+                                                            <button wire:click="openEditModal({{ $tpl->id }})" class="btn btn-outline-secondary" title="Edit Template">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button wire:click="toggleTemplate({{ $tpl->id }})" class="btn btn-outline-warning" title="Remove from Template Library">
+                                                                <i class="fas fa-bookmark"></i>
+                                                            </button>
+                                                            <button wire:click="confirmDelete({{ $tpl->id }})" class="btn btn-outline-danger" title="Delete Tip">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="col-12 py-5 text-center text-muted">
+                                        <i class="fas fa-bookmark fa-3x text-muted mb-3" style="opacity: 0.4;"></i>
+                                        <h5>No template tips match your filter criteria.</h5>
+                                        <p class="small text-muted">Try clearing your filters or check back later.</p>
+                                        @if($isSystemAdmin)
+                                            <button wire:click="openCreateModal(true)" class="btn btn-sm text-white mt-2 font-weight-bold" style="background-color: #6f42c1;">
+                                                <i class="fas fa-plus mr-1"></i> Create First Template Tip
+                                            </button>
+                                        @endif
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center flex-wrap">
+                            <div class="small text-muted mb-2 mb-md-0">
+                                Showing {{ $templates->firstItem() ?? 0 }} to {{ $templates->lastItem() ?? 0 }} of {{ $templates->total() }} templates
+                            </div>
+                            <div>
+                                {{ $templates->links() }}
+                            </div>
+                        </div>
+                    @endif
+
                 </div>
             </div>
         </div>
@@ -606,6 +829,19 @@
                     </select>
                     @error('status') <span class="text-danger small">{{ $message }}</span> @enderror
                 </div>
+
+                <!-- Template Toggle (System Admin only) -->
+                @if($isSystemAdmin)
+                    <div class="col-12 form-group">
+                        <div class="custom-control custom-checkbox p-2 rounded bg-light border">
+                            <input type="checkbox" class="custom-control-input" id="is_template" wire:model="is_template">
+                            <label class="custom-control-label font-weight-bold text-navy" for="is_template" style="cursor: pointer;">
+                                <i class="fas fa-bookmark mr-1" style="color: #6f42c1;"></i> System Template Tip (Available to all organizations in Template Library)
+                            </label>
+                            <div class="small text-muted pl-4">Organizations can browse and copy this template into their organization repository with one click.</div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div class="modal-footer px-0 pb-0 mt-3 d-flex justify-content-between">

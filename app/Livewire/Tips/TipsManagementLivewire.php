@@ -42,6 +42,13 @@ class TipsManagementLivewire extends Component
     // Daily Forecast date filter
     public $selectedDate = '';
 
+    // Template Tips section filters
+    public $templateSearch = '';
+
+    public $templateTrimesterFilter = '';
+
+    public $templateWeekFilter = '';
+
     // Modal state for Create / Edit Tip
     public $modal = false;
 
@@ -58,6 +65,8 @@ class TipsManagementLivewire extends Component
     public $organization_id = '';
 
     public $status = Tip::STATUS_APPROVED;
+
+    public $is_template = false;
 
     // Modal state for viewing recipient mothers of a specific tip
     public $recipientsModal = false;
@@ -128,6 +137,32 @@ class TipsManagementLivewire extends Component
         $this->resetPage();
     }
 
+    public function updatingTemplateSearch(): void
+    {
+        $this->resetPage('templatesPage');
+    }
+
+    public function updatingTemplateTrimesterFilter(): void
+    {
+        $this->templateWeekFilter = '';
+        $this->resetPage('templatesPage');
+    }
+
+    public function updatingTemplateWeekFilter(): void
+    {
+        $this->resetPage('templatesPage');
+    }
+
+    public function resetTemplateFilters(): void
+    {
+        $this->reset([
+            'templateSearch',
+            'templateTrimesterFilter',
+            'templateWeekFilter',
+        ]);
+        $this->resetPage('templatesPage');
+    }
+
     public function resetFilters(): void
     {
         $user = auth()->user();
@@ -166,7 +201,7 @@ class TipsManagementLivewire extends Component
     // CREATE / EDIT TIP MODAL
     // ========================================================
 
-    public function openCreateModal(): void
+    public function openCreateModal(bool $isTemplate = false): void
     {
         $user = auth()->user();
         $this->resetErrorBag();
@@ -174,6 +209,7 @@ class TipsManagementLivewire extends Component
         $this->tip_content = '';
         $this->week_id = 1;
         $this->day_id = 1;
+        $this->is_template = $user->isSystemAdmin() ? $isTemplate : false;
 
         $firstRange = DayRange::first();
         $this->day_range_id = $firstRange ? $firstRange->id : 1;
@@ -207,6 +243,7 @@ class TipsManagementLivewire extends Component
         $this->day_range_id = $tip->day_range_id;
         $this->organization_id = $tip->organization_id ? (string) $tip->organization_id : '';
         $this->status = $tip->status;
+        $this->is_template = (bool) $tip->is_template;
 
         $this->modal = true;
     }
@@ -233,6 +270,8 @@ class TipsManagementLivewire extends Component
             ? (! empty($this->organization_id) ? (int) $this->organization_id : null)
             : $user->organization_id;
 
+        $isTemplateVal = $user->isSystemAdmin() ? (bool) $this->is_template : false;
+
         if (empty($this->editingTipId)) {
             // Create New Tip
             Tip::create([
@@ -243,6 +282,7 @@ class TipsManagementLivewire extends Component
                 'organization_id' => $orgId,
                 'created_by' => $user->id,
                 'status' => $this->status,
+                'is_template' => $isTemplateVal,
             ]);
 
             $this->alert('success', 'New maternal tip created successfully.');
@@ -261,6 +301,7 @@ class TipsManagementLivewire extends Component
                 'day_range_id' => $this->day_range_id,
                 'organization_id' => $orgId,
                 'status' => $this->status,
+                'is_template' => $user->isSystemAdmin() ? $isTemplateVal : $tip->is_template,
                 'approved_by' => ($this->status === Tip::STATUS_APPROVED && $tip->status !== Tip::STATUS_APPROVED) ? $user->id : $tip->approved_by,
             ]);
 
@@ -268,6 +309,48 @@ class TipsManagementLivewire extends Component
         }
 
         $this->cancel();
+    }
+
+    public function toggleTemplate(int $id): void
+    {
+        $user = auth()->user();
+        if (! $user->isSystemAdmin()) {
+            $this->alert('error', 'Only System Administrators can mark tips as templates.');
+
+            return;
+        }
+
+        $tip = Tip::withoutGlobalScope('organization')->findOrFail($id);
+        $tip->update(['is_template' => ! $tip->is_template]);
+        $statusMsg = $tip->is_template ? 'marked as template' : 'removed from templates';
+        $this->alert('success', "Tip #{$tip->id} {$statusMsg}.");
+    }
+
+    public function useTemplate(int $id): void
+    {
+        $user = auth()->user();
+        if (! $user->organization_id) {
+            $this->alert('error', 'You must belong to an organization to adopt templates.');
+
+            return;
+        }
+
+        $template = Tip::withoutGlobalScope('organization')->findOrFail($id);
+
+        $status = ($user->isDoctor() || $user->isSystemAdmin()) ? Tip::STATUS_APPROVED : Tip::STATUS_PENDING;
+
+        Tip::create([
+            'tip' => $template->tip,
+            'week_id' => $template->week_id,
+            'day_id' => $template->day_id,
+            'day_range_id' => $template->day_range_id,
+            'organization_id' => $user->organization_id,
+            'created_by' => $user->id,
+            'status' => $status,
+            'is_template' => false,
+        ]);
+
+        $this->alert('success', "Template successfully copied to your organization for Week {$template->week_id}, Day {$template->day_id}.");
     }
 
     public function approveTip(int $id): void
@@ -470,6 +553,7 @@ class TipsManagementLivewire extends Component
         $this->deletingTipPreview = '';
         $this->viewingTip = null;
         $this->viewingRecipients = [];
+        $this->is_template = false;
         $this->resetErrorBag();
     }
 
@@ -662,6 +746,30 @@ class TipsManagementLivewire extends Component
             $totalMothersScheduledForDate = count($uniqueMotherIdsOnDate);
         }
 
+        // ----------------------------------------------------
+        // TAB 3: SYSTEM TEMPLATES DIRECTORY
+        // ----------------------------------------------------
+        $templatesQuery = Tip::withoutGlobalScope('organization')
+            ->with(['week.trimester', 'day_range', 'day', 'organization', 'creator'])
+            ->where('is_template', true);
+
+        if (! empty($this->templateTrimesterFilter)) {
+            $tri = $this->templateTrimesterFilter;
+            $templatesQuery->whereHas('week', fn ($wq) => $wq->where('trimester_id', $tri));
+        }
+
+        if (! empty($this->templateWeekFilter)) {
+            $templatesQuery->where('week_id', $this->templateWeekFilter);
+        }
+
+        if (! empty($this->templateSearch)) {
+            $ts = trim($this->templateSearch);
+            $templatesQuery->where('tip', 'like', "%{$ts}%");
+        }
+
+        $templates = $templatesQuery->orderBy('week_id')->orderBy('day_id')->paginate(12, ['*'], 'templatesPage');
+        $totalTemplatesCount = Tip::withoutGlobalScope('organization')->where('is_template', true)->count();
+
         // Dropdown data
         $organizations = $user->isSystemAdmin()
             ? Organization::where('is_pharmacy', false)->orderBy('name')->get()
@@ -674,10 +782,13 @@ class TipsManagementLivewire extends Component
 
         return view('livewire.tips.tips-management-livewire', [
             'tips' => $tips,
+            'templates' => $templates,
+            'totalTemplatesCount' => $totalTemplatesCount,
             'stats' => [
                 'total' => $totalTipsCount,
                 'approved' => $approvedTipsCount,
                 'pending' => $pendingTipsCount,
+                'templates' => $totalTemplatesCount,
                 'scheduledToday' => count($scheduledTipsForDate),
                 'mothersScheduledToday' => $totalMothersScheduledForDate,
             ],

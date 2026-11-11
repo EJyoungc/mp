@@ -257,3 +257,116 @@ it('calculates daily delivery forecast and displays recipient mothers for a spec
         ->call('cancel')
         ->assertSet('recipientsModal', false);
 });
+
+it('allows users to view template library and adopt templates into their organization', function () {
+    // Create a global template tip
+    $template = Tip::create([
+        'tip' => 'Standard WHO guideline: Consume iron and folic acid supplements daily.',
+        'week_id' => $this->week->id,
+        'day_id' => 1,
+        'day_range_id' => $this->dayRange->id,
+        'organization_id' => null,
+        'status' => Tip::STATUS_APPROVED,
+        'is_template' => true,
+    ]);
+
+    // Org Admin A browses templates tab and adopts the template
+    Livewire::actingAs($this->orgAdminA)
+        ->test(TipsManagementLivewire::class)
+        ->set('activeTab', 'templates')
+        ->assertSee('Standard WHO guideline: Consume iron and folic acid supplements daily.')
+        ->assertSee('Adopt Template')
+        ->call('useTemplate', $template->id)
+        ->assertDispatched('alert');
+
+    // Verify tip was copied to Org A
+    $copiedTip = Tip::where('organization_id', $this->orgA->id)
+        ->where('tip', $template->tip)
+        ->first();
+
+    expect($copiedTip)->not->toBeNull();
+    expect($copiedTip->week_id)->toBe($this->week->id);
+    expect($copiedTip->day_id)->toBe(1);
+    expect($copiedTip->is_template)->toBeFalse();
+    expect($copiedTip->organization_id)->toBe($this->orgA->id);
+});
+
+it('allows system admin to mark tips as templates and create new template tips', function () {
+    $tip = Tip::create([
+        'tip' => 'Hydration guidance for early pregnancy.',
+        'week_id' => $this->week->id,
+        'day_id' => 5,
+        'day_range_id' => $this->dayRange->id,
+        'organization_id' => $this->orgA->id,
+        'status' => Tip::STATUS_APPROVED,
+        'is_template' => false,
+    ]);
+
+    // System admin toggles template
+    Livewire::actingAs($this->systemAdmin)
+        ->test(TipsManagementLivewire::class)
+        ->call('toggleTemplate', $tip->id)
+        ->assertDispatched('alert');
+
+    expect($tip->fresh()->is_template)->toBeTrue();
+
+    // System admin creates a new template tip directly via modal
+    Livewire::actingAs($this->systemAdmin)
+        ->test(TipsManagementLivewire::class)
+        ->call('openCreateModal', true)
+        ->assertSet('modal', true)
+        ->assertSet('is_template', true)
+        ->set('tip_content', 'New System Template: Balanced nutrition in pregnancy.')
+        ->set('week_id', $this->week->id)
+        ->set('day_id', 2)
+        ->set('day_range_id', $this->dayRange->id)
+        ->call('store')
+        ->assertHasNoErrors()
+        ->assertSet('modal', false);
+
+    $createdTpl = Tip::where('tip', 'New System Template: Balanced nutrition in pregnancy.')->first();
+    expect($createdTpl)->not->toBeNull();
+    expect($createdTpl->is_template)->toBeTrue();
+});
+
+it('filters template tips by search query, trimester, and week', function () {
+    $tri2 = Trimester::firstOrCreate(['trimester' => 2]);
+    $week20 = Week::firstOrCreate(['week' => 20, 'trimester_id' => $tri2->id]);
+
+    $tpl1 = Tip::create([
+        'tip' => 'Template First: Morning nausea management tips.',
+        'week_id' => $this->week->id, // Trimester 1
+        'day_id' => 1,
+        'day_range_id' => $this->dayRange->id,
+        'status' => Tip::STATUS_APPROVED,
+        'is_template' => true,
+    ]);
+
+    $tpl2 = Tip::create([
+        'tip' => 'Template Second: Kick counts tracking in mid pregnancy.',
+        'week_id' => $week20->id, // Trimester 2
+        'day_id' => 1,
+        'day_range_id' => $this->dayRange->id,
+        'status' => Tip::STATUS_APPROVED,
+        'is_template' => true,
+    ]);
+
+    Livewire::actingAs($this->orgAdminA)
+        ->test(TipsManagementLivewire::class)
+        ->set('activeTab', 'templates')
+        ->assertSee('Morning nausea')
+        ->assertSee('Kick counts')
+        // Filter by Search
+        ->set('templateSearch', 'nausea')
+        ->assertSee('Morning nausea')
+        ->assertDontSee('Kick counts')
+        // Reset Search and filter by Trimester 2
+        ->set('templateSearch', '')
+        ->set('templateTrimesterFilter', (string) $tri2->id)
+        ->assertSee('Kick counts')
+        ->assertDontSee('Morning nausea')
+        // Reset filters
+        ->call('resetTemplateFilters')
+        ->assertSee('Morning nausea')
+        ->assertSee('Kick counts');
+});
