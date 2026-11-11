@@ -42,6 +42,14 @@ class TipsManagementLivewire extends Component
     // Daily Forecast date filter
     public $selectedDate = '';
 
+    // Template View Mode: 'calendar' (custom weekly calendar matrix) or 'grid' (cards directory)
+    public $templateViewMode = 'calendar';
+
+    // Calendar custom schedule navigation
+    public $calendarTrimesterId = 1;
+
+    public $calendarWeekId = 1;
+
     // Template Tips section filters
     public $templateSearch = '';
 
@@ -103,6 +111,17 @@ class TipsManagementLivewire extends Component
         $firstRange = DayRange::first();
         if ($firstRange) {
             $this->day_range_id = $firstRange->id;
+        }
+
+        // Initialize calendar week & trimester navigation
+        $firstTrimester = Trimester::orderBy('trimester')->first();
+        if ($firstTrimester) {
+            $this->calendarTrimesterId = $firstTrimester->id;
+            $firstWeek = Week::where('trimester_id', $firstTrimester->id)->orderBy('week')->first();
+            if ($firstWeek) {
+                $this->calendarWeekId = $firstWeek->id;
+                $this->week_id = $firstWeek->id;
+            }
         }
     }
 
@@ -195,6 +214,74 @@ class TipsManagementLivewire extends Component
         } elseif ($type === 'tomorrow') {
             $this->selectedDate = now()->addDay()->toDateString();
         }
+    }
+
+    public function setTemplateViewMode(string $mode): void
+    {
+        $this->templateViewMode = in_array($mode, ['calendar', 'grid']) ? $mode : 'calendar';
+    }
+
+    public function selectCalendarTrimester(int $trimesterId): void
+    {
+        $this->calendarTrimesterId = $trimesterId;
+        $firstWeek = Week::where('trimester_id', $trimesterId)->orderBy('week')->first();
+        if ($firstWeek) {
+            $this->calendarWeekId = $firstWeek->id;
+        }
+    }
+
+    public function selectCalendarWeek(int $weekId): void
+    {
+        $this->calendarWeekId = $weekId;
+        $week = Week::find($weekId);
+        if ($week) {
+            $this->calendarTrimesterId = $week->trimester_id;
+        }
+    }
+
+    public function prevCalendarWeek(): void
+    {
+        $currentWeek = Week::find($this->calendarWeekId);
+        if ($currentWeek) {
+            $prev = Week::where('week', '<', $currentWeek->week)->orderBy('week', 'desc')->first();
+            if ($prev) {
+                $this->calendarWeekId = $prev->id;
+                $this->calendarTrimesterId = $prev->trimester_id;
+            }
+        }
+    }
+
+    public function nextCalendarWeek(): void
+    {
+        $currentWeek = Week::find($this->calendarWeekId);
+        if ($currentWeek) {
+            $next = Week::where('week', '>', $currentWeek->week)->orderBy('week', 'asc')->first();
+            if ($next) {
+                $this->calendarWeekId = $next->id;
+                $this->calendarTrimesterId = $next->trimester_id;
+            }
+        }
+    }
+
+    public function openCreateForCalendarSlot(int $weekId, int $dayId, ?int $dayRangeId = null): void
+    {
+        $user = auth()->user();
+        $this->resetErrorBag();
+        $this->editingTipId = null;
+        $this->tip_content = '';
+        $this->week_id = $weekId;
+        $this->day_id = $dayId;
+        $this->day_range_id = $dayRangeId ?? ($this->day_range_id ?: 1);
+        $this->is_template = true;
+
+        if ($user->isSystemAdmin()) {
+            $this->organization_id = '';
+        } else {
+            $this->organization_id = (string) $user->organization_id;
+        }
+
+        $this->status = Tip::STATUS_APPROVED;
+        $this->modal = true;
     }
 
     // ========================================================
@@ -770,15 +857,70 @@ class TipsManagementLivewire extends Component
         $templates = $templatesQuery->orderBy('week_id')->orderBy('day_id')->paginate(12, ['*'], 'templatesPage');
         $totalTemplatesCount = Tip::withoutGlobalScope('organization')->where('is_template', true)->count();
 
-        // Dropdown data
-        $organizations = $user->isSystemAdmin()
-            ? Organization::where('is_pharmacy', false)->orderBy('name')->get()
-            : collect([$user->organization])->filter();
+        // ----------------------------------------------------
+        // TAB 3: CUSTOM CALENDAR MATRIX FOR TEMPLATES
+        // ----------------------------------------------------
+        $calendarWeek = Week::with('trimester')->find($this->calendarWeekId)
+            ?? Week::where('trimester_id', $this->calendarTrimesterId)->orderBy('week')->first()
+            ?? Week::first();
+
+        if ($calendarWeek) {
+            $this->calendarWeekId = $calendarWeek->id;
+            $this->calendarTrimesterId = $calendarWeek->trimester_id;
+        }
+
+        $calendarMatrix = [];
+        $dayTipsCount = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0];
+        $weekTemplatesCount = 0;
+
+        if ($calendarWeek) {
+            $weekTemplateTips = Tip::withoutGlobalScope('organization')
+                ->with(['day_range', 'day', 'organization', 'creator'])
+                ->where('is_template', true)
+                ->where('week_id', $calendarWeek->id)
+                ->get();
+
+            $weekTemplatesCount = $weekTemplateTips->count();
+
+            foreach ($weekTemplateTips as $wt) {
+                $rawDay = (int) $wt->day_id;
+                $daySlot = ($rawDay > 7) ? ((($rawDay - 1) % 7) + 1) : max(1, min(7, $rawDay));
+                $rangeSlot = (int) ($wt->day_range_id ?? 0);
+                $calendarMatrix[$daySlot][$rangeSlot][] = $wt;
+                $dayTipsCount[$daySlot] = ($dayTipsCount[$daySlot] ?? 0) + 1;
+            }
+        }
 
         $trimesters = Trimester::orderBy('trimester')->get();
         $weeks = Week::orderBy('week')->get();
         $days = Day::orderBy('day_number')->get();
         $dayRanges = DayRange::all();
+
+        $activeTrimesterWeeks = Week::where('trimester_id', $this->calendarTrimesterId)->orderBy('week')->get();
+        $prevCalendarWeek = $calendarWeek ? Week::where('week', '<', $calendarWeek->week)->orderBy('week', 'desc')->first() : null;
+        $nextCalendarWeek = $calendarWeek ? Week::where('week', '>', $calendarWeek->week)->orderBy('week', 'asc')->first() : null;
+
+        $trimesterCounts = [];
+        foreach ($trimesters as $tri) {
+            $trimesterCounts[$tri->id] = Tip::withoutGlobalScope('organization')
+                ->where('is_template', true)
+                ->whereHas('week', fn ($wq) => $wq->where('trimester_id', $tri->id))
+                ->count();
+        }
+
+        $calendarDayRanges = DayRange::orderBy('start_time')->get();
+        if ($calendarDayRanges->isEmpty()) {
+            $calendarDayRanges = collect([
+                (object) ['id' => 1, 'name' => 'Morning', 'start_time' => '06:00:00', 'end_time' => '11:59:59'],
+                (object) ['id' => 2, 'name' => 'Afternoon', 'start_time' => '12:00:00', 'end_time' => '17:59:59'],
+                (object) ['id' => 3, 'name' => 'Evening', 'start_time' => '18:00:00', 'end_time' => '23:59:59'],
+            ]);
+        }
+
+        // Dropdown data
+        $organizations = $user->isSystemAdmin()
+            ? Organization::where('is_pharmacy', false)->orderBy('name')->get()
+            : collect([$user->organization])->filter();
 
         return view('livewire.tips.tips-management-livewire', [
             'tips' => $tips,
@@ -800,6 +942,15 @@ class TipsManagementLivewire extends Component
             'days' => $days,
             'dayRanges' => $dayRanges,
             'isSystemAdmin' => $user->isSystemAdmin(),
+            'calendarWeek' => $calendarWeek,
+            'calendarMatrix' => $calendarMatrix,
+            'dayTipsCount' => $dayTipsCount,
+            'weekTemplatesCount' => $weekTemplatesCount,
+            'activeTrimesterWeeks' => $activeTrimesterWeeks,
+            'prevCalendarWeek' => $prevCalendarWeek,
+            'nextCalendarWeek' => $nextCalendarWeek,
+            'trimesterCounts' => $trimesterCounts,
+            'calendarDayRanges' => $calendarDayRanges,
         ]);
     }
 }

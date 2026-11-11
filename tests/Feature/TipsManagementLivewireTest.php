@@ -275,7 +275,7 @@ it('allows users to view template library and adopt templates into their organiz
         ->test(TipsManagementLivewire::class)
         ->set('activeTab', 'templates')
         ->assertSee('Standard WHO guideline: Consume iron and folic acid supplements daily.')
-        ->assertSee('Adopt Template')
+        ->assertSee('Adopt')
         ->call('useTemplate', $template->id)
         ->assertDispatched('alert');
 
@@ -354,6 +354,7 @@ it('filters template tips by search query, trimester, and week', function () {
     Livewire::actingAs($this->orgAdminA)
         ->test(TipsManagementLivewire::class)
         ->set('activeTab', 'templates')
+        ->set('templateViewMode', 'grid')
         ->assertSee('Morning nausea')
         ->assertSee('Kick counts')
         // Filter by Search
@@ -369,4 +370,62 @@ it('filters template tips by search query, trimester, and week', function () {
         ->call('resetTemplateFilters')
         ->assertSee('Morning nausea')
         ->assertSee('Kick counts');
+});
+
+it('renders the custom calendar overview arranged by day and time frame for week and trimester', function () {
+    $morningRange = DayRange::firstOrCreate(
+        ['name' => 'Morning Window'],
+        ['start_time' => '08:00:00', 'end_time' => '12:00:00']
+    );
+
+    // Tip for Week 10, Day 3, in Morning Window
+    $tpl = Tip::create([
+        'tip' => 'Calendar Tip: Drink warm lemon water upon waking.',
+        'week_id' => $this->week->id,
+        'day_id' => 3,
+        'day_range_id' => $morningRange->id,
+        'status' => Tip::STATUS_APPROVED,
+        'is_template' => true,
+    ]);
+
+    // Test calendar matrix rendering and navigation
+    $tri2 = Trimester::firstOrCreate(['trimester' => 2]);
+    $week20 = Week::firstOrCreate(['week' => 20, 'trimester_id' => $tri2->id]);
+
+    Livewire::actingAs($this->orgAdminA)
+        ->test(TipsManagementLivewire::class)
+        ->set('activeTab', 'templates')
+        ->assertSet('templateViewMode', 'calendar')
+        ->assertSet('calendarTrimesterId', $this->trimester->id)
+        ->assertSet('calendarWeekId', $this->week->id)
+        ->assertSee('Gestational Schedule Matrix')
+        ->assertSee('Day 3')
+        ->assertSee('Morning Window')
+        ->assertSee('Drink warm lemon water upon waking')
+        ->assertSee('Adopt')
+        // Test switching weeks
+        ->call('selectCalendarWeek', $week20->id)
+        ->assertSet('calendarWeekId', $week20->id)
+        ->assertSet('calendarTrimesterId', $tri2->id)
+        // Test switching trimesters
+        ->call('selectCalendarTrimester', $this->trimester->id)
+        ->assertSet('calendarTrimesterId', $this->trimester->id)
+        // Test view mode toggle
+        ->call('setTemplateViewMode', 'grid')
+        ->assertSet('templateViewMode', 'grid')
+        ->call('setTemplateViewMode', 'calendar')
+        ->assertSet('templateViewMode', 'calendar');
+
+    // Test System Admin calendar slot creation
+    Livewire::actingAs($this->systemAdmin)
+        ->test(TipsManagementLivewire::class)
+        ->set('activeTab', 'templates')
+        ->call('openCreateForCalendarSlot', $this->week->id, 5, $morningRange->id)
+        ->assertSet('modal', true)
+        ->assertSet('week_id', $this->week->id)
+        ->assertSet('day_id', 5)
+        ->assertSet('day_range_id', $morningRange->id)
+        ->assertSet('is_template', true)
+        ->call('cancel')
+        ->assertSet('modal', false);
 });
