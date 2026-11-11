@@ -65,13 +65,13 @@
                     <h3 class="card-title text-white mb-0">
                         <i class="fas fa-list-alt mr-2"></i> Organizations Directory
                     </h3>
-                    <div class="card-tools ml-auto d-flex align-items-center">
+                    <div class="card-tools ml-auto d-flex align-items-center flex-wrap">
                         @if(auth()->user()->isSystemAdmin())
-                            <button wire:click="generateMissingAcronyms" wire:loading.attr="disabled" class="btn btn-outline-light btn-sm mr-2 shadow-sm font-weight-bold" title="Generate acronyms for all organizations that don't have one set">
-                                <span wire:loading.remove wire:target="generateMissingAcronyms"><i class="fas fa-magic mr-1 text-warning"></i> Generate Missing Acronyms</span>
+                            <button wire:click="generateMissingAcronyms" wire:loading.attr="disabled" class="btn btn-warning btn-sm mr-2 mb-1 shadow-sm font-weight-bold text-dark" title="Generate acronyms for all organizations that don't have one set">
+                                <span wire:loading.remove wire:target="generateMissingAcronyms"><i class="fas fa-magic mr-1"></i> Generate Missing Acronyms</span>
                                 <span wire:loading wire:target="generateMissingAcronyms"><i class="fas fa-spinner fa-spin mr-1"></i> Generating...</span>
                             </button>
-                            <button wire:click.prevent="create" class="btn btn-light btn-sm shadow-sm font-weight-bold">
+                            <button wire:click.prevent="create" class="btn btn-light btn-sm mb-1 shadow-sm font-weight-bold">
                                 <i class="fas fa-plus mr-1 text-primary"></i> Add Organization
                             </button>
                         @endif
@@ -79,14 +79,31 @@
                 </div>
 
                 <div class="card-body">
+                    <!-- Notification Banner for Missing Acronyms -->
+                    @if(($missingAcronymsCount ?? 0) > 0 && auth()->user()->isSystemAdmin())
+                        <div class="alert alert-warning shadow-sm border-0 d-flex align-items-center justify-content-between p-3 mb-3 rounded flex-wrap">
+                            <div class="d-flex align-items-center mb-2 mb-md-0">
+                                <i class="fas fa-magic fa-2x text-warning mr-3"></i>
+                                <div>
+                                    <h6 class="mb-0 font-weight-bold text-dark">Missing SMS Acronyms Detected</h6>
+                                    <p class="mb-0 text-muted small">There are <strong>{{ $missingAcronymsCount }}</strong> organization(s) without an acronym prefix set. Generate them automatically from their names.</p>
+                                </div>
+                            </div>
+                            <button wire:click="generateMissingAcronyms" wire:loading.attr="disabled" class="btn btn-dark btn-sm font-weight-bold text-warning text-nowrap shadow-sm">
+                                <span wire:loading.remove wire:target="generateMissingAcronyms"><i class="fas fa-bolt mr-1"></i> Auto-Generate All ({{ $missingAcronymsCount }})</span>
+                                <span wire:loading wire:target="generateMissingAcronyms"><i class="fas fa-spinner fa-spin mr-1"></i> Generating...</span>
+                            </button>
+                        </div>
+                    @endif
+
                     <!-- Search & Filter Controls -->
-                    <div class="row mb-3">
-                        <div class="col-md-5 mb-2">
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-md-4 mb-2">
                             <div class="input-group">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
                                 </div>
-                                <input type="text" class="form-control border-left-0" wire:model.live.debounce.300ms="search" placeholder="Search by name, contact, district, area...">
+                                <input type="text" class="form-control border-left-0" wire:model.live.debounce.300ms="search" placeholder="Search by name, acronym, contact, district...">
                                 @if(!empty($search))
                                     <div class="input-group-append">
                                         <button class="btn btn-outline-secondary" type="button" wire:click="$set('search', '')"><i class="fas fa-times"></i></button>
@@ -94,14 +111,14 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="col-md-3 col-sm-6 mb-2">
+                        <div class="col-md-2 col-sm-6 mb-2">
                             <select wire:model.live="type_filter" class="form-control">
                                 <option value="">-- All Types --</option>
                                 <option value="clinic">Clinics / Healthcare</option>
                                 <option value="pharmacy">Pharmacies</option>
                             </select>
                         </div>
-                        <div class="col-md-3 col-sm-6 mb-2">
+                        <div class="col-md-2 col-sm-6 mb-2">
                             <select wire:model.live="district_filter" class="form-control">
                                 <option value="">-- All Districts --</option>
                                 @foreach($districts as $d)
@@ -116,6 +133,14 @@
                                 </button>
                             @endif
                         </div>
+                        <div class="col-md-3 mb-2 text-md-right text-left">
+                            @if(auth()->user()->isSystemAdmin())
+                                <button wire:click="generateMissingAcronyms" wire:loading.attr="disabled" class="btn btn-warning btn-sm font-weight-bold shadow-sm" title="Generate acronyms for all organizations that don't have one set">
+                                    <span wire:loading.remove wire:target="generateMissingAcronyms"><i class="fas fa-magic mr-1"></i> Generate Acronyms</span>
+                                    <span wire:loading wire:target="generateMissingAcronyms"><i class="fas fa-spinner fa-spin mr-1"></i> Generating...</span>
+                                </button>
+                            @endif
+                        </div>
                     </div>
 
                     <!-- Organizations Table -->
@@ -125,7 +150,14 @@
                                 <tr>
                                     <th style="width: 50px;">#</th>
                                     <th>Organization</th>
-                                    <th>Acronym</th>
+                                    <th>
+                                        Acronym
+                                        @if(auth()->user()->isSystemAdmin())
+                                            <button wire:click="generateMissingAcronyms" class="btn btn-xs btn-outline-warning text-dark ml-1 font-weight-bold shadow-none" title="Generate missing acronyms for all organizations">
+                                                <i class="fas fa-magic"></i> Auto-all
+                                            </button>
+                                        @endif
+                                    </th>
                                     <th>Type</th>
                                     <th>Location</th>
                                     <th>Contact</th>

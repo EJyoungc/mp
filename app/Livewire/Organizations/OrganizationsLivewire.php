@@ -524,10 +524,15 @@ class OrganizationsLivewire extends Component
 
         $orgs = $query->latest()->paginate($this->perPage);
 
+        $missingAcronymsCount = Organization::where(function ($q) {
+            $q->whereNull('acronym')->orWhere('acronym', '');
+        })->count();
+
         return view('livewire.organizations.organizations-livewire', [
             'orgs' => $orgs,
             'districts' => District::orderBy('name')->get(),
             'areas' => $this->district_id ? Area::where('district_id', $this->district_id)->orderBy('name')->get() : [],
+            'missingAcronymsCount' => $missingAcronymsCount,
             'stats' => [
                 'total' => $totalOrgs,
                 'clinics' => $totalClinics,
